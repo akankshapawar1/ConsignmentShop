@@ -92,7 +92,7 @@ p#message {
       const password = document.getElementById('password').value;
       const messageElement = document.getElementById('message');
       const payload = {
-    body: JSON.stringify({ user_id: user_id, password: password })
+    body: JSON.stringify({ action: "login",user_id: user_id, password: password })
   };
 
       try {
