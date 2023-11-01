@@ -1,56 +1,11 @@
 import React, { useState } from 'react';
 import './style.css'; // assuming you have the style.css file in the same directory
 
-function App() {
+function StoreOwner() {
     const [showCreateStoreForm, setShowCreateStoreForm] = useState(false);
     const [showAddComputerForm, setShowAddComputerForm] = useState(false);
     const [createStoreMessage, setCreateStoreMessage] = useState('');
     const [addComputerMessage, setAddComputerMessage] = useState('');
-
-    async function createStore(storeData) {
-        const storeID = document.getElementById('storeID').value;
-            const storeName = document.getElementById('storeName').value;
-            const credentials = document.getElementById('credentials').value;
-            const latitude = document.getElementById('latitude').value;
-            const longitude = document.getElementById('longitude').value;
-
-            const requestBody = { body : JSON.stringify({
-                action: "createStore",
-                storeID,
-                storeName,
-                latitude,
-                longitude,
-                credentials})
-             };
-
-        try {
-                const response = await fetch('https://q15htzftq3.execute-api.us-east-1.amazonaws.com/beta/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestBody)
-        });
-        const responseData = await response.json();
-        console.log(response);
-        if (responseData.statusCode === 409) {
-            document.getElementById('createStoreMessage').innerText = 'Store already exists. Please choose a different name or credentials.';
-        }
-
-        else if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        else{
-        document.getElementById('createStoreMessage').innerText = 'Store created successfully!';
-        console.log('Store created:', responseData);
-        }
-    } catch (error) {
-        document.getElementById('createStoreMessage').innerText = 'Failed to create store. Please try again.';
-        console.error('Error creating store:', error);
-    }
-        // Your create store logic here
-    }
 
     async function addComputer(computerData) {
         const computerID = document.getElementById('computerID').value;
@@ -115,44 +70,54 @@ function App() {
     return (
         <div>
             <h1>Welcome <span id="ownerName">Store Owner</span></h1>
-
-            <div className="button" onClick={() => { setShowCreateStoreForm(true); setShowAddComputerForm(false); }}>Create Store</div>
-            <div className="button" onClick={() => { setShowCreateStoreForm(false); setShowAddComputerForm(true); }}>Add Computer</div>
+    
+            {/* <div className="button" onClick={() => { setShowCreateStoreForm(true); setShowAddComputerForm(false); }}>Create Store</div> */}
+            
+            
+            <div className="button" onClick={() => { setShowAddComputerForm(true); }}>Add Computer</div>
+            
             <div className="button">Modify Price or Delete Computer</div>
             <div className="button">Generate Inventory</div>
-            <div className="button">Remove Store</div>
-
-            {showCreateStoreForm && (
-                <div id="createStoreForm" className="form">
-                    <h2>Create Store</h2>
-                    <label htmlFor="storeName">Store ID:</label>
-                    <input type="text" id="storeID" required />
-                    <label htmlFor="storeName">Store Name:</label>
-                    <input type="text" id="storeName" required />
+            {/* <div className="button">Remove Store</div> */}
+           
+            
+                <div id="addComputerForm" className="form" style={{ display: showAddComputerForm ? 'block' : 'none' }}>
+                    <h2>Add Computer</h2>
+                    <label htmlFor="computerID">Your Computer ID:</label>
+                    <input type="text" id="computerID" required />
+                    <label htmlFor="storeID2">Store ID:</label>
+                    <input type="number" id="storeID2" required />
+                    <label htmlFor="computerCredentials">Your Credentials:</label>
+                    <input type="password" id="computerCredentials" required />
+                    <label htmlFor="computerName">Computer Name:</label>
+                    <input type="text" id="computerName" required />
                     <br />
-                    <label htmlFor="credentials">Credentials:</label>
-                    <input type="password" id="credentials" required />
+                    <label htmlFor="price">Price:</label>
+                    <input type="number" id="price" required />
                     <br />
-                    <label htmlFor="latitude">Latitude:</label>
-                    <input type="text" id="latitude" required />
+                    <label htmlFor="memory">Memory:</label>
+                    <input type="text" id="memory" required />
                     <br />
-                    <label htmlFor="longitude">Longitude:</label>
-                    <input type="text" id="longitude" required />
+                    <label htmlFor="storage">Storage:</label>
+                    <input type="text" id="storage" required />
                     <br />
-                    <button type="button" onClick={() => createStore(/* your data here */)}>Create Store</button>
-                    <p id="createStoreMessage">{createStoreMessage}</p>
+                    <label htmlFor="processor">Processor:</label>
+                    <input type="text" id="processor" required />
+                    <br />
+                    <label htmlFor="processorGeneration">Processor Generation:</label>
+                    <input type="text" id="processorGeneration" required />
+                    <br />
+                    <label htmlFor="graphics">Graphics:</label>
+                    <input type="text" id="graphics" required />
+                    <br />
+                    <button type="button" onClick={addComputer}>Add Computer</button>
+                    <p id="addComputerMessage"></p>
                 </div>
-            )}
-
-            {showAddComputerForm && (
-                <div id="addComputerForm" className="form">
-                    
-                    {/* ... similar pattern to above form ... */}
-                    <p id="addComputerMessage">{addComputerMessage}</p>
-                </div>
-            )}
+                
         </div>
+        
     );
+    
 }
 
-export default App;
+export default StoreOwner;
