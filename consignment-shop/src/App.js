@@ -3,7 +3,9 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import { useNavigate } from 'react-router-dom';
 import Login, {createStore} from "./login";
 import StoreOwner from "./storeowner";
+import SiteManager from './SiteManager';
 import { CreateStoreForm } from './login';
+
 const styles = {
   app: {
     minHeight: '100vh',
@@ -23,7 +25,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         
-        {/* <Route path="/sitemanager" component={SiteManager} /> */}
+        <Route path="/SiteManager" element={<SiteManager/>} />
         <Route path="/storeowner" element={<StoreOwner />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

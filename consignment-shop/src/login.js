@@ -77,6 +77,7 @@ const styles = {
       textDecoration: 'underline'
     }
   };
+  
 function Login() {
   const navigate = useNavigate();
   const [showCreateStoreForm, setShowCreateStoreForm] = useState(false);
@@ -111,6 +112,7 @@ function Login() {
       setMessage(responseBody.message);
       if (responseBody.isSiteManager && data.statusCode === 200) {
         // window.location.href = 'sitemanager_page.html'; 
+        navigate('/SiteManager');
       } else if (data.statusCode === 200 && responseBody.isSiteManager === false) {
         navigate('/storeowner');
       }
@@ -150,6 +152,7 @@ function Login() {
     </div>
   );
 }
+
 async function createStore(storeData) {
   try {
     const create_payload = {
