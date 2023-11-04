@@ -8,11 +8,10 @@ function StoreOwner() {
     const [addComputerMessage, setAddComputerMessage] = useState('');
 
     async function addComputer(computerData) {
-        const computerID = document.getElementById('computerID').value;
         const storeID = document.getElementById('storeID2').value;
         console.log("store id : ", storeID);
         const credentials = document.getElementById('computerCredentials').value;
-        const computerName = document.getElementById('computerName').value;
+        const brand = document.getElementById('brand').value;
         const price = document.getElementById('price').value;
         const memory = document.getElementById('memory').value;
         const storage = document.getElementById('storage').value;
@@ -21,8 +20,7 @@ function StoreOwner() {
         const graphics = document.getElementById('graphics').value;
 
         const computerDetails = {
-            computerID,
-            computerName,
+            brand,
             price,
             memory,
             storage,
@@ -82,14 +80,12 @@ function StoreOwner() {
             
             <div id="addComputerForm" className="form" style={{ display: showAddComputerForm ? 'block' : 'none' }}>
                 <h2>Add Computer</h2>
-                <label htmlFor="computerID">Your Computer ID:</label>
-                <input type="text" id="computerID" required />
                 <label htmlFor="storeID2">Store ID:</label>
                 <input type="number" id="storeID2" required />
                 <label htmlFor="computerCredentials">Your Credentials:</label>
                 <input type="password" id="computerCredentials" required />
-                <label htmlFor="computerName">Computer Name:</label>
-                <input type="text" id="computerName" required />
+                <label htmlFor="brand">Brand:</label>
+                <input type="text" id="brand" required />
                 <br />
                 <label htmlFor="price">Price:</label>
                 <input type="number" id="price" required />
