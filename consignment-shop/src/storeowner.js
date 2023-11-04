@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './style.css'; 
 
 function StoreOwner() {
@@ -6,6 +6,54 @@ function StoreOwner() {
     const [showAddComputerForm, setShowAddComputerForm] = useState(false);
     const [createStoreMessage, setCreateStoreMessage] = useState('');
     const [addComputerMessage, setAddComputerMessage] = useState('');
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+
+    useEffect(() => {
+        // Update the document title using the browser API
+        setUsername(localStorage.getItem('username'))
+        setPassword(localStorage.getItem('password'))
+    });
+
+    async function generateInventoryReport(ownerId) {
+        const requestBody = { body : JSON.stringify({
+            action: "getAllComputers",
+            userID: ownerId,
+            })
+        };
+
+        console.log("requestBody: ", requestBody)
+
+        try {
+        const response = await fetch('https://q15htzftq3.execute-api.us-east-1.amazonaws.com/beta/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+        });
+
+        const responseData = await response.json();
+        console.log(responseData);
+        // Check if the response is successful.
+        if (responseData.statusCode==200) {
+            console.log('Computer fetched:', responseData);
+            
+            const responseBody = JSON.parse(responseData.body);
+            const computerList = responseBody.computerList;
+
+            console.log("computerList: ", computerList)
+
+        } else {
+        // For non-successful responses, use the error message from the backend.
+            console.log('Failed to get computers:', responseData);
+        }
+        } catch (error) {
+        // This is for network errors or invalid JSON parsing.
+            //document.getElementById('addComputerMessage').innerText = 'Failed to add computer. Please try again. Your credentials might be wrong';
+            console.error('Error adding computer:', error);
+        }
+    }
 
     async function addComputer(computerData) {
         const storeID = document.getElementById('storeID2').value;
@@ -35,8 +83,6 @@ function StoreOwner() {
             computerDetails
             })
         };
-
-        console.log(requestBody);
 
         try {
         const response = await fetch('https://q15htzftq3.execute-api.us-east-1.amazonaws.com/beta/login', {
@@ -74,7 +120,7 @@ function StoreOwner() {
             <div className="button" onClick={() => { setShowAddComputerForm(true); }}>Add Computer</div>
             
             <div className="button">Modify Price or Delete Computer</div>
-            <div className="button">Generate Inventory</div>
+            <div className="button" onClick={() => generateInventoryReport(username)}>Generate Inventory</div>
             {/* <div className="button">Remove Store</div> */}
            
             

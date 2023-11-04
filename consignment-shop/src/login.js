@@ -110,10 +110,13 @@ function Login() {
       }
       const responseBody = JSON.parse(data.body);
       setMessage(responseBody.message);
-      if (responseBody.isSiteManager && data.statusCode === 200) {
-        // window.location.href = 'sitemanager_page.html'; 
+      if (responseBody.isSiteManager === true && data.statusCode === 200) {
+        localStorage.setItem('username', userId);
+        localStorage.setItem('password', password);
         navigate('/SiteManager');
       } else if (data.statusCode === 200 && responseBody.isSiteManager === false) {
+        localStorage.setItem('username', userId);
+        localStorage.setItem('password', password);
         navigate('/storeowner');
       }
     } catch (error) {
