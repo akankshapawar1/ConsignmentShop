@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import Login, {createStore} from "./login";
-import StoreOwner from "./storeowner";
+import Login from "./login";
+import StoreOwner from "./StoreOwner";
 import SiteManager from './SiteManager';
-import { CreateStoreForm } from './login';
 
 const styles = {
   app: {
@@ -24,9 +23,8 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
-        
         <Route path="/SiteManager" element={<SiteManager/>} />
-        <Route path="/storeowner" element={<StoreOwner />} />
+        <Route path="/StoreOwner" element={<StoreOwner />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
