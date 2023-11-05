@@ -12,6 +12,11 @@ body {
     color: #fff;
 }
 
+successmessage{
+    font-size: 16px;
+    text-align: center;
+}
+
 h1 {
     font-size: 3em;
     margin-bottom: 5px;

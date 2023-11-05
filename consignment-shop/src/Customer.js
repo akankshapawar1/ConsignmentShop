@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
 function Customer(){
-    const [buyComputer, setBuyComputer] = useState()
+    const [buyComputer, setBuyComputer] = useState(null)
     const [computerList, setComputerList] = useState([])
+    const [successMessage, setSuccessMessage] = useState('');
 
     useEffect(() => {
         console.log('Selected computer: ', buyComputer);
@@ -71,17 +72,23 @@ function Customer(){
                 if(responseData2.statusCode==200){
                     //const bodyObject = JSON.parse(responseData2);
                     console.log('Sold the computer', responseData2);
+                    setSuccessMessage('Computer has been shipped!');
+                    setBuyComputer(null);
                 }else{
                     console.log('Failed to sell the computer');
+                    setSuccessMessage('Failed to buy the computer.');
                 }
             }catch(error){
                 console.log('Failed to sell the computer', error);
+                setSuccessMessage('Error occurred while trying to buy the computer.');
             }
         }
     }
     // computer_id, store_id, brand, price, memory, storage, processor, process_generation, graphics
     return(
-        <><div>Customer</div>
+        <>
+        {successMessage && <div className='successmessage'>{successMessage}</div>}
+        <div>Customer</div>
         <button className='button' onClick={() => displayAllComputers()}>Display All Computers</button>
         <div>
                 {computerList && computerList.length > 0 ? (
