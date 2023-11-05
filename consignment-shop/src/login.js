@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 // import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, Button, TextField, Typography, Container } from '@mui/material';
 
 // Inlined styles
 const styles = {
@@ -110,10 +111,13 @@ function Login() {
       }
       const responseBody = JSON.parse(data.body);
       setMessage(responseBody.message);
-      if (responseBody.isSiteManager && data.statusCode === 200) {
-        // window.location.href = 'sitemanager_page.html'; 
+      if (responseBody.isSiteManager === true && data.statusCode === 200) {
+        localStorage.setItem('username', userId);
+        localStorage.setItem('password', password);
         navigate('/SiteManager');
       } else if (data.statusCode === 200 && responseBody.isSiteManager === false) {
+        localStorage.setItem('username', userId);
+        localStorage.setItem('password', password);
         navigate('/storeowner');
       }
     } catch (error) {
@@ -122,34 +126,50 @@ function Login() {
   };
 
   return (
-    <div>
-      <h2 style={{ textAlign: 'center' }}>Computer Consignment Shop</h2>
-      <h2 style={{ textAlign: 'center' }}>Login</h2>
-      <form style={styles.form} onSubmit={handleSubmit}>
-        <label htmlFor="user_id">Username:</label>
-        <input
-          type="text"
-          id="user_id"
-          value={userId}
-          onChange={(e) => setUserId(e.target.value)}
-          required
-        />
-        <label htmlFor="password">Password:</label>
-        <input
-          type="password"
-          id="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Login</button>
-      </form>
-      
-      <p>{message}</p>
-      {/* <CreateStoreForm /> */}
-      <button onClick={handleCreateStoreClick}>Create Store</button>
-      {showCreateStoreForm && <CreateStoreForm />}
-    </div>
+    <Container maxWidth="sm">
+      <Card>
+        <CardContent>
+          <Typography variant="h4" align="center" gutterBottom style={{ color: 'black' }}>
+            Computer Consignment Shop
+          </Typography>
+          <Typography variant="h5" align="center" gutterBottom style={{ color: 'black' }}>
+            Login
+          </Typography>
+          <form onSubmit={handleSubmit}>
+            <TextField
+              fullWidth
+              label="Username"
+              variant="outlined"
+              id="user_id"
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
+              required
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              label="Password"
+              variant="outlined"
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              margin="normal"
+            />
+            <Button type="submit" variant="contained" color="primary" fullWidth>
+              Login
+            </Button>
+          </form>
+          <Typography variant="body1" color="error" gutterBottom>
+            {message}
+          </Typography>
+          <Button variant="outlined" fullWidth onClick={handleCreateStoreClick}>
+            Create Store
+          </Button>
+        </CardContent>
+      </Card>
+    </Container>
   );
 }
 

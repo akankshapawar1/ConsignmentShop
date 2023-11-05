@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
 import Login, {createStore} from "./login";
 import StoreOwner from "./storeowner";
 import SiteManager from './SiteManager';
-import { CreateStoreForm } from './login';
 
 const styles = {
   app: {
@@ -32,5 +30,3 @@ export default function App() {
     </Router>
   );
 }
-
-//export default Login;

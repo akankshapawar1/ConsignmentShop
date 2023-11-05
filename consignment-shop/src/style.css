@@ -8,7 +8,7 @@ body {
     justify-content: center;
     height: 100vh;
     gap: 20px;
-    background: linear-gradient(to right, #36d1dc, #5b86e5);
+    /* background: linear-gradient(to right, #36d1dc, #5b86e5); */
     color: #fff;
 }
 
