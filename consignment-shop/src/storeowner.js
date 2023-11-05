@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import './style.css'; 
+import { useNavigate } from 'react-router-dom';
+
 
 function StoreOwner() {
+    const navigate = useNavigate();
     const [showCreateStoreForm, setShowCreateStoreForm] = useState(false);
     const [showAddComputerForm, setShowAddComputerForm] = useState(false);
+    const [computerList, setComputerList] = useState([]);
     const [createStoreMessage, setCreateStoreMessage] = useState('');
     const [addComputerMessage, setAddComputerMessage] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+
+
 
     useEffect(() => {
         // Update the document title using the browser API
@@ -43,6 +49,13 @@ function StoreOwner() {
             const computerList = responseBody.computerList;
 
             console.log("computerList: ", computerList)
+            //setComputerList(computerList);
+            
+            navigate('/inventory', { state: { computerList } });
+
+            //localStorage.setItem('computerList', JSON.stringify(computerList));
+            // Redirect to the new page
+            //window.location.href = 'inventory.html';
 
         } else {
         // For non-successful responses, use the error message from the backend.
@@ -57,7 +70,7 @@ function StoreOwner() {
 
     async function addComputer(computerData) {
         const storeID = document.getElementById('storeID2').value;
-        console.log("store id : ", storeID);
+        console.log("username : ", username);
         const credentials = document.getElementById('computerCredentials').value;
         const brand = document.getElementById('brand').value;
         const price = document.getElementById('price').value;
@@ -155,6 +168,7 @@ function StoreOwner() {
                 <p id="addComputerMessage"></p>
             </div>
                 
+
         </div>
         
     );

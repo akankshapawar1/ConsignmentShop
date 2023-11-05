@@ -5,6 +5,7 @@ import Login, {createStore} from "./login";
 import StoreOwner from "./storeowner";
 import SiteManager from './SiteManager';
 import { CreateStoreForm } from './login';
+import InventoryList from './InventoryList';
 
 const styles = {
   app: {
@@ -27,6 +28,7 @@ export default function App() {
         
         <Route path="/SiteManager" element={<SiteManager/>} />
         <Route path="/storeowner" element={<StoreOwner />} />
+        <Route path="/inventory" element={<InventoryList />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
