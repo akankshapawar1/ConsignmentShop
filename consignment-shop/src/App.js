@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Login from "./login";
 import StoreOwner from "./StoreOwner";
 import SiteManager from './SiteManager';
+import Customer from './Customer';
 
 const styles = {
   app: {
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/SiteManager" element={<SiteManager/>} />
         <Route path="/StoreOwner" element={<StoreOwner />} />
+        <Route path="/Customer" element={<Customer/>} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
