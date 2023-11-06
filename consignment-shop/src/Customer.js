@@ -6,8 +6,17 @@ function Customer(){
     const [successMessage, setSuccessMessage] = useState('');
 
     useEffect(() => {
+        // Call the displayAllComputers function when the component mounts
+        displayAllComputers();
+    }, []);
+
+    /* useEffect(() => {
         console.log('Selected computer: ', buyComputer);
-    }, [buyComputer]);    
+    }, [buyComputer]);  */   
+
+    const handleRadioChange = (event) =>{
+        setBuyComputer(event.target.value);
+    }
 
     async function displayAllComputers(){
         const requestBody = { body : JSON.stringify({
@@ -41,10 +50,6 @@ function Customer(){
 
     }
 
-    const handleRadioChange = (event) =>{
-        setBuyComputer(event.target.value);
-    }
-
     async function buyComputerAction(){
         if(buyComputer){
             
@@ -73,6 +78,7 @@ function Customer(){
                     //const bodyObject = JSON.parse(responseData2);
                     console.log('Sold the computer', responseData2);
                     setSuccessMessage('Computer has been shipped!');
+                    await displayAllComputers();
                     setBuyComputer(null);
                 }else{
                     console.log('Failed to sell the computer');
@@ -88,8 +94,8 @@ function Customer(){
     return(
         <>
         {successMessage && <div className='successmessage'>{successMessage}</div>}
-        <div>Customer</div>
-        <button className='button' onClick={() => displayAllComputers()}>Display All Computers</button>
+        <div><h1>Customer</h1></div>
+        {/*<button className='button' onClick={() => displayAllComputers()}>Display All Computers</button>*/}
         <div>
                 {computerList && computerList.length > 0 ? (
                     <><table>
@@ -119,7 +125,11 @@ function Customer(){
                                     <td>{computer.processor}</td>
                                     <td>{computer.process_generation}</td>
                                     <td>{computer.graphics}</td>
-                                    <td><label><input type='radio' value={computer.computer_id} name='buyComputer' onChange={handleRadioChange}></input></label>
+                                    <td><label><input type='radio' 
+                                        value={computer.computer_id} 
+                                        name='buyComputer' 
+                                        onChange={handleRadioChange}
+                                        ></input></label>
                                     </td>
                                 </tr>
                             ))}
@@ -128,7 +138,7 @@ function Customer(){
                     <button className='button' onClick={()=> buyComputerAction()}>Buy selected computer</button>
                     </> 
                 ) : (
-                    <p>No computer list.</p>
+                    <p></p>
                 )}
             </div>
         </>
