@@ -11,13 +11,32 @@ function SiteManager(){
     // states for displaying inventory
     const[totalInventory, setTotalInventory] = useState([]);
     const[totalSum, setTotalSum] = useState(0);
+    const [showInventory, setShowInventory] = useState(false);
+    const [showDeleteComp,setShowDeleteComp] = useState(false);
 
     // states for deleting store
     const[storeList, setStoreList] = useState([]);
     const[storeToBeDeleted, setStoreToBeDeleted] = useState();
+    const[deleteSuccess, setDeleteSuccess] = useState(null);
+    const [isInventoryVisible, setIsInventoryVisible] = useState(false);
 
     const handleRadioChange = (event) =>{
         setStoreToBeDeleted(event.target.value);
+    }
+    async function toggleDisplayTotalInventory() {
+        // const shouldDisplay = !showInventory;
+        // setShowInventory(shouldDisplay);
+        if(showInventory)
+        {
+            setShowInventory(false);
+        }
+        else{
+            setShowInventory(true);
+        }
+        if (showInventory) {
+            // Only fetch data when we are about to show the inventory
+            await displayTotalInventory();
+        }
     }
 
     async function displayTotalInventory(){
@@ -44,7 +63,7 @@ function SiteManager(){
                 const bodyObject = JSON.parse(responseData.body);
                 console.log('Parsed Body:', bodyObject);
                 setTotalInventory(bodyObject.totalInventory);
-                const totalSum2 = bodyObject.totalInventory.reduce((acc, item) => acc + (Number(item['sum(Computer.price)']) || 0), 0);
+                const totalSum2 = bodyObject.totalInventory.reduce((acc, item) => acc + (Number(item['Inventory']) || 0), 0);
                 setTotalSum(totalSum2);
             } else {
                 console.log('Failed');
@@ -113,6 +132,9 @@ function SiteManager(){
                 if(responseData2.statusCode==200){
                     //const bodyObject = JSON.parse(responseData2);
                     console.log('Deleted the store', responseData2);
+                    setDeleteSuccess(true);
+                    await displayStoresToDelete();
+                    setStoreToBeDeleted(null);
                 }else{
                     console.log('Failed to delete the store');
                 }
@@ -125,14 +147,16 @@ function SiteManager(){
     return (
         <div>
             <h1>Site Manager</h1>
-            <button className='button' onClick={() => displayTotalInventory()}>Total Inventory</button>
+            {/* <button className='button' onClick={() => {displayTotalInventory(); }}>Total Inventory</button> */}
+            <button className='button' onClick={() => {setShowDeleteComp(false);toggleDisplayTotalInventory();}}>Total Inventory</button>
 
             {/* Inventory Table */}
             <div>
-                {totalInventory && totalInventory.length > 0 ? (
+                {totalInventory && showInventory && totalInventory.length > 0 ? (
                     <table>
                     <thead>
                       <tr>
+                        <th>Store ID</th>
                         <th>Store Name</th>
                         <th>Inventory</th>
                       </tr>
@@ -140,29 +164,31 @@ function SiteManager(){
                     <tbody>
                       {totalInventory.map((store, index) => (
                         <tr key={index}>
+                          <td>{store.store_id}</td>
                           <td>{store.store_name}</td>
-                          <td>{store['sum(Computer.price)']}</td>
+                          <td>{store['Inventory']}</td>
                         </tr>
                       ))}
                       <tr>
                         <td><b>Total</b></td>
-                        <td>{totalSum}</td>
+                        <td></td>
+                        <td><b>{totalSum}</b></td>
                       </tr>
                     </tbody>
                   </table>
                 ) : (
-                    <p>No inventory data available.</p>
+                    <p></p>
                 )}
             </div>
 
             <button className='button'>Store Inventory</button>
             <button className='button'>Total Balance</button>
             <button className='button'>Store Balance</button>
-            <button className='button' onClick={()=> displayStoresToDelete()}>Remove Store</button>
+            <button className='button' onClick={()=> {setShowInventory(false);if(showDeleteComp){setShowDeleteComp(false);} else {setShowDeleteComp(true);}displayStoresToDelete()}}>Remove Store</button>
             
             {/* Store List */}
             <div>
-                {storeList && storeList.length > 0 ? (
+                {storeList && showDeleteComp && storeList.length > 0 ? (
                     <><table>
                         <thead>
                             <tr>
@@ -175,7 +201,11 @@ function SiteManager(){
                             {storeList.map((store, index) => (
                                 <tr key={index}>
                                     <td>
-                                        <label><input type='radio' value={store.store_id} name='deleteStore' onChange={handleRadioChange}></input></label>
+                                        <label><input type='radio' 
+                                        value={store.store_id} 
+                                        name='deleteStore' 
+                                        onChange={handleRadioChange}></input>
+                                        </label>
                                     </td>
                                     <td>{store.store_id}</td>
                                     <td>{store.store_name}</td>
@@ -184,7 +214,15 @@ function SiteManager(){
                         </tbody>
                     </table><button className='button' onClick={()=> deleteStore()}>Delete the selected store</button></> 
                 ) : (
-                    <p>No store list.</p>
+                    <p></p>
+                )}
+            </div>
+            
+            <div>
+                {deleteSuccess == true ?(
+                    <p><b>Store has been deleted successfully</b></p>
+                ):(
+                    <p></p>
                 )}
             </div>
 
