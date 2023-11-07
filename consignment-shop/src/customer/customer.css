@@ -1,0 +1,23 @@
+.flex-container {
+    display: flex;
+}
+
+.flex-filter {
+    flex: 1;
+    margin: 20px;
+    padding: 20px;
+}  
+
+.flex-list {
+    flex: 3;
+    margin-top: 120px;
+    padding: 20px;
+}  
+
+.flex-child:first-child {
+    margin-right: 20px;
+} 
+
+th {
+    text-align: left;
+}
