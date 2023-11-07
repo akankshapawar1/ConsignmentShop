@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-// import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+//import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, Button, TextField, Typography, Container } from '@mui/material';
 
 // Inlined styles
 const styles = {
@@ -81,16 +82,35 @@ const styles = {
 function Login() {
   const navigate = useNavigate();
   const [showCreateStoreForm, setShowCreateStoreForm] = useState(false);
-  const [showAddComputerForm, setShowAddComputerForm] = useState(false);
-  const [createStoreMessage, setCreateStoreMessage] = useState('');
-  const [addComputerMessage, setAddComputerMessage] = useState('');
+  //const [showAddComputerForm, setShowAddComputerForm] = useState(false);
+  //const [createStoreMessage, setCreateStoreMessage] = useState('');
+  //const [addComputerMessage, setAddComputerMessage] = useState('');
   
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
-  const handleCreateStoreClick = () => {
+  const initialFormState = {
+    storeName: '',
+    userID: '',
+    latitude: '',
+    longitude: '',
+    credentials: ''
+  };
+  //const [storeFormData, setStoreFormData] = useState(initialFormState);
+  const handleCreateStoreClick = async (event) => {
     console.log('Create Store Button Clicked');
+    if(!showCreateStoreForm){
     setShowCreateStoreForm(true);
+    }
+    else{
+      setShowCreateStoreForm(false);
+    }
+    
+
+
+  };
+  const navigateToCustomer = () => {
+    navigate('/Customer');
   };
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -110,46 +130,77 @@ function Login() {
       }
       const responseBody = JSON.parse(data.body);
       setMessage(responseBody.message);
-      if (responseBody.isSiteManager && data.statusCode === 200) {
-        // window.location.href = 'sitemanager_page.html'; 
+      if (responseBody.isSiteManager === true && data.statusCode === 200) {
+        localStorage.setItem('username', userId);
+        localStorage.setItem('password', password);
         navigate('/SiteManager');
       } else if (data.statusCode === 200 && responseBody.isSiteManager === false) {
+        localStorage.setItem('username', userId);
+        localStorage.setItem('password', password);
         navigate('/storeowner');
       }
     } catch (error) {
       setMessage(error.body);
     }
   };
+  
 
   return (
-    <div>
-      <h2 style={{ textAlign: 'center' }}>Computer Consignment Shop</h2>
-      <h2 style={{ textAlign: 'center' }}>Login</h2>
-      <form style={styles.form} onSubmit={handleSubmit}>
-        <label htmlFor="user_id">Username:</label>
-        <input
-          type="text"
-          id="user_id"
-          value={userId}
-          onChange={(e) => setUserId(e.target.value)}
-          required
-        />
-        <label htmlFor="password">Password:</label>
-        <input
-          type="password"
-          id="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Login</button>
-      </form>
-      
-      <p>{message}</p>
-      {/* <CreateStoreForm /> */}
-      <button onClick={handleCreateStoreClick}>Create Store</button>
-      {showCreateStoreForm && <CreateStoreForm />}
-    </div>
+    <Container maxWidth="sm">
+      <Card>
+        <CardContent>
+          <Typography variant="h4" align="center" gutterBottom style={{ color: 'black' }}>
+            Computer Consignment Shop
+          </Typography>
+          <Typography variant="h5" align="center" gutterBottom style={{ color: 'black' }}>
+            Login
+          </Typography>
+          <form onSubmit={handleSubmit}>
+            <TextField
+              fullWidth
+              label="Username"
+              variant="outlined"
+              id="user_id"
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
+              required
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              label="Password"
+              variant="outlined"
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              margin="normal"
+            />
+            <Button type="submit" variant="contained" color="primary" fullWidth>
+              Login
+            </Button>
+          </form>
+          <Typography variant="body1" color="error" gutterBottom>
+            {message}
+          </Typography>
+          <Button variant="outlined" fullWidth onClick={handleCreateStoreClick}>
+            Create Store
+          </Button>
+          {showCreateStoreForm && <CreateStoreForm />}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent>
+        
+          <Typography variant="body1" align="center" style={styles.message}>
+            Are you a customer? <button style={styles.linkButton} onClick={navigateToCustomer}>Click here</button>
+          </Typography>
+         
+        </CardContent>
+      </Card>
+    </Container>
+    
   );
 }
 
@@ -185,55 +236,113 @@ async function createStore(storeData) {
   }
 }
 
-function CreateStoreForm() {
-    console.log('Create Store Form is now visible');
-  const [storeData, setStoreData] = useState({
+function CreateStoreForm({ onStoreCreated }) {
+  console.log('Create Store Form is now visible');
+  const initialFormState = {
     storeName: '',
     userID: '',
     latitude: '',
     longitude: '',
     credentials: ''
-  });
+  };
+  const [storeData, setStoreData] = useState(initialFormState);
   const [createStoreMessage, setCreateStoreMessage] = useState('');
   const [showCreateStoreForm, setShowCreateStoreForm] = useState(false);
 
   const handleInputChange = (e) => {
-    setStoreData({ ...storeData, [e.target.id]: e.target.value });
+    //setStoreData({ ...storeData, [e.target.id]: e.target.value });
+    const { name, value } = e.target;
+    setStoreData(prevStoreData => ({
+      ...prevStoreData,
+      [name]: value
+    }));
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const isValidNumber = (value) => {
+      return !isNaN(value) && !isNaN(parseFloat(value));
+    };
+  
+    // Check if latitude and longitude are valid numbers
+    if (!isValidNumber(storeData.latitude) || !isValidNumber(storeData.longitude)) {
+      setCreateStoreMessage('Invalid format for latitude or longitude. Please enter a valid value.');
+      return;
+    }
     const message = await createStore(storeData);
     setCreateStoreMessage(message);
+    setStoreData(initialFormState);
   }
 
   return (
-    <div>
-      <h2>Create Store Form</h2>
-      
-        
-          <h2>Create Store</h2>
-          
-          <label htmlFor="userID">User ID:</label>
-          <input type="text" id="userID" required onChange={handleInputChange} />
-          <br />
-          <label htmlFor="storeName">Store Name:</label>
-          <input type="text" id="storeName" required onChange={handleInputChange} />
-          <br />
-          <label htmlFor="credentials">Credentials:</label>
-          <input type="password" id="credentials" required onChange={handleInputChange} />
-          <br />
-          <label htmlFor="latitude">Latitude:</label>
-          <input type="text" id="latitude" required onChange={handleInputChange} />
-          <br />
-          <label htmlFor="longitude">Longitude:</label>
-          <input type="text" id="longitude" required onChange={handleInputChange} />
-          <br />
-          <button type="submit" onClick={handleSubmit}>Create Store</button>
-          <p id="createStoreMessage">{createStoreMessage}</p>
-        
-      
-    </div>
+    <Container maxWidth="sm" style={{ marginTop: 20 }}>
+      <Card>
+        <CardContent>
+          <Typography variant="h5" align="center" gutterBottom>
+            Create Store
+          </Typography>
+          <form onSubmit={handleSubmit}>
+            <TextField
+              fullWidth
+              label="User Name"
+              variant="outlined"
+              name="userID"
+              value={storeData.userID}
+              onChange={handleInputChange}
+              required
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              label="Store Name"
+              variant="outlined"
+              name="storeName"
+              value={storeData.storeName}
+              onChange={handleInputChange}
+              required
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              label="Credentials"
+              variant="outlined"
+              name="credentials"
+              type="password"
+              value={storeData.credentials}
+              onChange={handleInputChange}
+              required
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              label="Latitude"
+              variant="outlined"
+              name="latitude"
+              value={storeData.latitude}
+              onChange={handleInputChange}
+              required
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              label="Longitude"
+              variant="outlined"
+              name="longitude"
+              value={storeData.longitude}
+              onChange={handleInputChange}
+              required
+              margin="normal"
+            />
+            <Button type="submit" variant="contained" color="primary" fullWidth>
+              Create Store
+            </Button>
+          </form>
+          <Typography variant="body1" color="textSecondary" align="center" style={{ marginTop: 10 }}>
+            {createStoreMessage}
+          </Typography>
+        </CardContent>
+      </Card>
+    </Container>
   );
 }
 
