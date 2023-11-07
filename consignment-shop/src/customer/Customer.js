@@ -251,14 +251,15 @@ function Customer(){
                             ))}
                         </tbody>
                     </table> 
-
                     </>
                 ) : (
                     <p></p>
                 )}
+                <Button variant='contained' sx={{top: 25}}>Filter</Button>
             </div>
-            {successMessage && <div>{successMessage}</div>}
+            
             <div className="flex-list">
+            {successMessage && <div>{successMessage}</div>}
                 {computerList && computerList.length > 0 ? (
                     <><table>
                         <thead>
@@ -304,7 +305,8 @@ function Customer(){
                     <p></p>
                 )}
             </div>
-        </div><div>
+        </div>
+        <div>
         <Box textAlign='right'>
             <Button variant='contained' sx={{ position: "fixed", top: 50, right: 50, zIndex: 2000 }}>
             Show all stores

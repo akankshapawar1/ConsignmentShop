@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Login from "./login";
-import StoreOwner from "./storeowner";
+import StoreOwner from "./StoreOwner";
 import SiteManager from './SiteManager';
 import Customer from './customer/Customer';
 
@@ -24,7 +24,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/SiteManager" element={<SiteManager/>} />
-        <Route path="/storeowner" element={<StoreOwner />} />
+        <Route path="/StoreOwner" element={<StoreOwner />} />
         <Route path="/Customer" element={<Customer/>} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
