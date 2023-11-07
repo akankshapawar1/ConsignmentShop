@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap');
+
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    height: 100vh;
+    background-color: #fff; 
+    color: black;
+}
+
+/* Style for the main container that holds both the filter section and main content */
+.container {
+    display: flex;
+    height: 50vh; /* Full height of the viewport */
+}
+
+
+/* Style for the filter section */
+.filter-section {
+    width: 250px; /* Width of the filter section */
+    background-color: #fff; /* Background color for the filter section */
+    color: #000; /* Text color for the filter section */
+    padding: 20px; /* Padding inside the filter section */
+    box-sizing: border-box; /* Include padding in the width */
+}
+
+/* Style for the main content */
+.main-content {
+    flex-grow: 1; /* Take up the remaining space */
+    padding: 20px; /* Padding inside the main content */
+    background-color: #f0f0f0; /* Background color for the main content */
+    color: #000; /* Text color for the main content */
+    overflow-y: auto; /* Add scroll for overflow */
+}
+
+/* Rest of the styles remain the same */

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './customer.css';
 
 function Customer(){
     const [buyComputer, setBuyComputer] = useState(null)
@@ -92,56 +93,65 @@ function Customer(){
     }
     // computer_id, store_id, brand, price, memory, storage, processor, process_generation, graphics
     return(
-        <>
-        {successMessage && <div className='successmessage'>{successMessage}</div>}
-        <div><h1>Customer</h1></div>
-        {/*<button className='button' onClick={() => displayAllComputers()}>Display All Computers</button>*/}
-        <div>
-                {computerList && computerList.length > 0 ? (
-                    <><table>
-                        <thead>
-                            <tr>
-                                <th>Computer ID</th>
-                                <th>Store ID</th>
-                                <th>Brand</th>
-                                <th>Price</th>
-                                <th>Memory</th>
-                                <th>Storage</th>
-                                <th>Processor</th>
-                                <th>Process Generation</th>
-                                <th>Graphics</th>
-                                <th>Buy</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {computerList.map((computer, index) => (
-                                <tr key={index}>
-                                    <td>{computer.computer_id}</td>
-                                    <td>{computer.store_id}</td>
-                                    <td>{computer.brand}</td>
-                                    <td>{computer.price}</td>
-                                    <td>{computer.memory}</td>
-                                    <td>{computer.storage}</td>
-                                    <td>{computer.processor}</td>
-                                    <td>{computer.process_generation}</td>
-                                    <td>{computer.graphics}</td>
-                                    <td><label><input type='radio' 
-                                        value={computer.computer_id} 
-                                        name='buyComputer' 
-                                        onChange={handleRadioChange}
-                                        ></input></label>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    <button className='button' onClick={()=> buyComputerAction()}>Buy selected computer</button>
-                    </> 
-                ) : (
-                    <p></p>
-                )}
+        
+        <><div className="container">
+            <div className="filter-section">
+                {/* Filters will go here */}
             </div>
-        </>
+            <div className="main-content">
+                {/* Existing content will go here, like your table and other components */}
+            </div>
+        
+                {successMessage && <div className='successmessage'>{successMessage}</div>}
+                <div className='cust'><h1>Customer</h1></div>
+                {/*<button className='button' onClick={() => displayAllComputers()}>Display All Computers</button>*/}
+                <div>
+                    {computerList && computerList.length > 0 ? (
+                        <><table>
+                            <thead>
+                                <tr>
+                                    <th>Computer ID</th>
+                                    <th>Store ID</th>
+                                    <th>Brand</th>
+                                    <th>Price</th>
+                                    <th>Memory</th>
+                                    <th>Storage</th>
+                                    <th>Processor</th>
+                                    <th>Process Generation</th>
+                                    <th>Graphics</th>
+                                    <th>Buy</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {computerList.map((computer, index) => (
+                                    <tr key={index}>
+                                        <td>{computer.computer_id}</td>
+                                        <td>{computer.store_id}</td>
+                                        <td>{computer.brand}</td>
+                                        <td>{computer.price}</td>
+                                        <td>{computer.memory}</td>
+                                        <td>{computer.storage}</td>
+                                        <td>{computer.processor}</td>
+                                        <td>{computer.process_generation}</td>
+                                        <td>{computer.graphics}</td>
+                                        <td><label><input type='radio'
+                                            value={computer.computer_id}
+                                            name='buyComputer'
+                                            onChange={handleRadioChange}
+                                        ></input></label>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                            <button className='button' onClick={() => buyComputerAction()}>Buy selected computer</button>
+                        </>
+                    ) : (
+                        <p></p>
+                    )}
+                </div>
+                </div>
+            </>
 
     )
 }
