@@ -21,9 +21,16 @@ function StoreOwner() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Update the document title using the browser API
-        setUsername(localStorage.getItem('username'))
-        setPassword(localStorage.getItem('password'))
+      const username = localStorage.getItem('username')
+      const password = localStorage.getItem('password')
+
+      if (username && password) {
+        setUsername(username)
+        setPassword(password)
+      }
+      else {
+        navigate("/login")
+      }
     },[]);
 
     async function generateInventoryReport(ownerId) {

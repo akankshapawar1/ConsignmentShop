@@ -17,7 +17,23 @@ function SiteManager(){
     const[deleteSuccess, setDeleteSuccess] = useState(null);
     const [deletedStoreId, setDeletedStoreId] = useState(null);
     const [activeView, setActiveView] = useState(null);
+
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+
     useEffect(() => {
+
+        const username = localStorage.getItem('username')
+        const password = localStorage.getItem('password')
+
+        if (username && password) {
+            setUsername(username)
+            setPassword(password)
+        }
+        else {
+            navigate("/login")
+        }
+
         setShowInventory(false);
     }, []);
     let deleteSuccessTimeout = null;
@@ -25,7 +41,7 @@ function SiteManager(){
     deleteSuccessTimeout = setTimeout(() => {
         setDeleteSuccess(true);
         setDeletedStoreId(null); 
-    }, 10000);
+    }, 5000);
 
 
     useEffect(() => {
@@ -241,8 +257,8 @@ function SiteManager(){
         )}
 
         <div>
-        {deleteSuccess === true && activeView === 'deleteStore' ? (
-            <p><b>Store {deletedStoreId} has been deleted successfully</b></p>
+        {deleteSuccess === true && activeView === 'deleteStore' && deletedStoreId ? (
+            <p><b>Store {deletedStoreId} has been deleted successfully!</b></p>
         ):(
             <p></p>
         )}

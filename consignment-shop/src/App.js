@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Login from "./login";
-import StoreOwner from "./StoreOwner";
+import StoreOwner from "./storeowner";
 import SiteManager from './SiteManager';
 import Customer from './customer/Customer';
 

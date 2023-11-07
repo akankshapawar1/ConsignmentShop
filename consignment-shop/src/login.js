@@ -284,7 +284,7 @@ function CreateStoreForm({ onStoreCreated }) {
           <form onSubmit={handleSubmit}>
             <TextField
               fullWidth
-              label="User ID"
+              label="User Name"
               variant="outlined"
               name="userID"
               value={storeData.userID}
