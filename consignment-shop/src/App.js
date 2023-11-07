@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
 import Login from "./login";
 import StoreOwner from "./storeowner";
 import SiteManager from './SiteManager';
-import Customer from './Customer';
+import Customer from './customer/Customer';
 
-const styles = {
+/* const styles = {
   app: {
     minHeight: '100vh',
     display: 'flex',
@@ -18,7 +17,7 @@ const styles = {
     padding: 20,
     textAlign: 'center'
   }
-};
+}; */
 export default function App() {
   return (
     <Router>

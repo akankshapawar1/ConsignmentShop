@@ -6,23 +6,15 @@ import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import './style.css'; 
 
 function StoreOwner() {
-  // const initialForm =  {
-  //   brand : "",
-  //   price : "",
-  //   memory : "",
-  //   storage : "",
-  //   processor: "",
-  //   processorGeneration: "",
-  //   graphics:""
-  // };
+
     const [inventoryData, setInventoryData] = useState([]);
     const [totalPrice, setTotalPrice] = useState(0);
     const [showInventory, setShowInventory] = useState(false);
-    const [showCreateStoreForm, setShowCreateStoreForm] = useState(false);
+    //const [showCreateStoreForm, setShowCreateStoreForm] = useState(false);
     const [showAddComputerForm, setShowAddComputerForm] = useState(false);
     // const [computerFormData, setcomputerFormData] = useState(initialForm);
-    const [createStoreMessage, setCreateStoreMessage] = useState('');
-    const [addComputerMessage, setAddComputerMessage] = useState('');
+    //const [createStoreMessage, setCreateStoreMessage] = useState('');
+    //const [addComputerMessage, setAddComputerMessage] = useState('');
     const [selectedBrand, setSelectedBrand] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -32,7 +24,7 @@ function StoreOwner() {
         // Update the document title using the browser API
         setUsername(localStorage.getItem('username'))
         setPassword(localStorage.getItem('password'))
-    });
+    },[]);
 
     async function generateInventoryReport(ownerId) {
       console.log(ownerId);
@@ -54,7 +46,7 @@ function StoreOwner() {
         const responseData = await response.json();
         console.log(responseData);
         // Check if the response is successful.
-        if (responseData.statusCode==200) {
+        if (responseData.statusCode === 200) {
             console.log('Computer fetched:', responseData);
             
             const responseBody = JSON.parse(responseData.body);
@@ -119,7 +111,7 @@ function StoreOwner() {
         const responseData = await response.json();
         console.log(responseData);
         // Check if the response is successful.
-        if (responseData.statusCode==200) {
+        if (responseData.statusCode === 200) {
             document.getElementById('addComputerMessage').innerText = 'Computer added successfully!';
             console.log('Computer added:', responseData);
         } else {
@@ -338,9 +330,7 @@ function StoreOwner() {
         </Typography>
       )}
     </Container>
-        
-    );
-    
+); 
 }
 
 export default StoreOwner;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+//import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, Button, TextField, Typography, Container } from '@mui/material';
 
@@ -82,9 +82,9 @@ const styles = {
 function Login() {
   const navigate = useNavigate();
   const [showCreateStoreForm, setShowCreateStoreForm] = useState(false);
-  const [showAddComputerForm, setShowAddComputerForm] = useState(false);
-  const [createStoreMessage, setCreateStoreMessage] = useState('');
-  const [addComputerMessage, setAddComputerMessage] = useState('');
+  //const [showAddComputerForm, setShowAddComputerForm] = useState(false);
+  //const [createStoreMessage, setCreateStoreMessage] = useState('');
+  //const [addComputerMessage, setAddComputerMessage] = useState('');
   
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
@@ -96,7 +96,7 @@ function Login() {
     longitude: '',
     credentials: ''
   };
-  const [storeFormData, setStoreFormData] = useState(initialFormState);
+  //const [storeFormData, setStoreFormData] = useState(initialFormState);
   const handleCreateStoreClick = async (event) => {
     console.log('Create Store Button Clicked');
     if(!showCreateStoreForm){
