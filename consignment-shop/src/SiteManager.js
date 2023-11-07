@@ -2,11 +2,29 @@
 (SM) Site Manager removes the Worcester store
 (SM) Site Manager reports total inventory for site to show (Boston Store, $3250) */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 //import './siteManager.css';
 import './style.css'; 
 
 function SiteManager(){
+
+    let deleteSuccessTimeout = null;
+
+    // Inside deleteStore function, assign the timeout to this variable
+    deleteSuccessTimeout = setTimeout(() => {
+        setDeleteSuccess(false);
+        setDeletedStoreId(null); // Also clear the deletedStoreId
+    }, 10000);
+
+
+    useEffect(() => {
+        // Cleanup function to clear the timeout
+        return () => {
+            if (deleteSuccessTimeout) {
+                clearTimeout(deleteSuccessTimeout);
+            }
+        };
+    }, []); 
 
     // states for displaying inventory
     const[totalInventory, setTotalInventory] = useState([]);
@@ -16,11 +34,31 @@ function SiteManager(){
     const[storeList, setStoreList] = useState([]);
     const[storeToBeDeleted, setStoreToBeDeleted] = useState();
     const[deleteSuccess, setDeleteSuccess] = useState(null);
+    const [deletedStoreId, setDeletedStoreId] = useState(null);
+
+
+    // to remove previous output from screen
+    const [activeView, setActiveView] = useState(null);
 
     const handleRadioChange = (event) =>{
         setStoreToBeDeleted(event.target.value);
     }
 
+    const handleDisplayTotalInventory = async () =>{
+        setActiveView('totalInventory');
+        await displayTotalInventory();
+    }
+
+    const handleDisplayStoresToDelete = async () =>{
+        setActiveView('storesToDelete');
+        await displayStoresToDelete();
+    }
+
+    const handleDeleteStore = async () => {
+        await deleteStore();
+        setActiveView('deleteStore'); // Keep or change the active view as needed
+    };
+    
     async function displayTotalInventory(){
         const requestBody = { body : JSON.stringify({
             action: "totalInventory"
@@ -89,7 +127,7 @@ function SiteManager(){
 
     async function deleteStore(){
         if(storeToBeDeleted){
-            
+            setDeletedStoreId(storeToBeDeleted);
             const requestBody = { body : JSON.stringify({
                 action:'deleteStore',
                 store_id : storeToBeDeleted
@@ -115,8 +153,15 @@ function SiteManager(){
                     //const bodyObject = JSON.parse(responseData2);
                     console.log('Deleted the store', responseData2);
                     setDeleteSuccess(true);
-                    await displayStoresToDelete();
+                    // Do we want to display the list of stores after store has been deleted?
+                    //await displayStoresToDelete();
                     setStoreToBeDeleted(null);
+                    setDeletedStoreId(storeToBeDeleted); // Set the ID of the deleted store
+                    // Set a timeout to reset the deleteSuccess state after 5 seconds
+                    setTimeout(() => {
+                        setDeleteSuccess(false);
+                        setDeletedStoreId(null); // Also clear the deletedStoreId
+                    }, 5000);
                 }else{
                     console.log('Failed to delete the store');
                 }
@@ -129,10 +174,12 @@ function SiteManager(){
     return (
         <div>
             <h1>Site Manager</h1>
-            <button className='button' onClick={() => displayTotalInventory()}>Total Inventory</button>
+            <button className='button' onClick={() => handleDisplayTotalInventory()}>Total Inventory</button>
 
             {/* Inventory Table */}
-            <div>
+            {/* Conditional rendering based on activeView */}
+            {activeView === 'totalInventory' && (
+                <div>
                 {totalInventory && totalInventory.length > 0 ? (
                     <table>
                     <thead>
@@ -161,15 +208,18 @@ function SiteManager(){
                     <p></p>
                 )}
             </div>
+            )}
+            
 
             <button className='button'>Store Inventory</button>
             <button className='button'>Total Balance</button>
             <button className='button'>Store Balance</button>
-            <button className='button' onClick={()=> displayStoresToDelete()}>Remove Store</button>
+            <button className='button' onClick={()=> handleDisplayStoresToDelete()}>Remove Store</button>
             
             {/* Store List */}
-            <div>
-                {storeList && storeList.length > 0 ? (
+            
+                <div>
+                {activeView === 'storesToDelete' && storeList && storeList.length > 0 ? (
                     <><table>
                         <thead>
                             <tr>
@@ -193,18 +243,20 @@ function SiteManager(){
                                 </tr>
                             ))}
                         </tbody>
-                    </table><button className='button' onClick={()=> deleteStore()}>Delete the selected store</button></> 
+                    </table><button className='button' onClick={()=> handleDeleteStore()}>Delete the selected store</button></> 
                 ) : (
                     <p></p>
                 )}
             </div>
             
+            
+            
             <div>
-                {deleteSuccess == true ?(
-                    <p><b>Store has been deleted successfully</b></p>
-                ):(
-                    <p></p>
-                )}
+            {deleteSuccess === true && activeView === 'deleteStore' ? (
+                <p><b>Store {deletedStoreId} has been deleted successfully</b></p>
+            ):(
+                <p></p>
+            )}
             </div>
 
         </div>
