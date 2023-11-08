@@ -1,19 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
 import './customer.css';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import Checkbox from '@mui/material/Checkbox';
+import Radio from '@mui/material/Radio';
 
 function Customer(){
     const [buyComputer, setBuyComputer] = useState(null)
     const [computerList, setComputerList] = useState([])
     const [brandList, setBrandList] = useState([])
     const [memoryList, setMemoryList] = useState([])
+
     // storageList, processorList, processGenList, graphicsList
     const [storageList, setStorageList] = useState([])
     const [processorList, setProcessorList] = useState([])
     const [processGenList, setProcessGenList] = useState([])
     const [graphicsList, setGraphicsList] = useState([])
     const [successMessage, setSuccessMessage] = useState('');
+
+    // searchbar
+    const [searchInput, setSearchInput] = useState("");
+    const [selectedValue, setSelectedValue] = React.useState('');
+
+    const searchBar = () => {}
 
     useEffect(() => {
         // Call the displayAllComputers function when the component mounts
@@ -259,45 +276,55 @@ function Customer(){
             </div>
             
             <div className="flex-list">
+            <TextField id="search" label="location" variant="filled" fullWidth/>
+            <br></br>
+            <br></br>
             {successMessage && <div>{successMessage}</div>}
                 {computerList && computerList.length > 0 ? (
-                    <><table>
-                        <thead>
-                            <tr>
-                                <th>Computer ID</th>
-                                <th>Store ID</th>
-                                <th>Brand</th>
-                                <th>Price</th>
-                                <th>Memory</th>
-                                <th>Storage</th>
-                                <th>Processor</th>
-                                <th>Process Generation</th>
-                                <th>Graphics</th>
-                                <th>Buy</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {computerList.map((computer, index) => (
-                                <tr key={index}>
-                                    <td>{computer.computer_id}</td>
-                                    <td>{computer.store_id}</td>
-                                    <td>{computer.brand}</td>
-                                    <td>{computer.price}</td>
-                                    <td>{computer.memory}</td>
-                                    <td>{computer.storage}</td>
-                                    <td>{computer.processor}</td>
-                                    <td>{computer.process_generation}</td>
-                                    <td>{computer.graphics}</td>
-                                    <td><label><input type='radio'
-                                        value={computer.computer_id}
-                                        name='buyComputer'
-                                        onChange={handleRadioChange}
-                                    ></input></label>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    <><TableContainer component={Paper}>
+                    <Table aria-label="simple table">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Computer ID</TableCell>
+                          <TableCell>Store ID</TableCell>
+                          <TableCell>Brand</TableCell>
+                          <TableCell>Price</TableCell>
+                          <TableCell>Memory</TableCell>
+                          <TableCell>Storage</TableCell>
+                          <TableCell>Processor</TableCell>
+                          <TableCell>Processor Generation</TableCell>
+                          <TableCell>Graphics</TableCell>
+                          <TableCell>Shipping</TableCell>
+                          <TableCell>Buy</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {computerList.map((computer, index) => (
+                          <TableRow key={index}>
+                            <TableCell>{computer.computer_id}</TableCell>
+                            <TableCell>{computer.store_id}</TableCell>
+                            <TableCell>{computer.brand}</TableCell>
+                            <TableCell>{computer.price}</TableCell>
+                            <TableCell>{computer.memory}</TableCell>
+                            <TableCell>{computer.storage}</TableCell>
+                            <TableCell>{computer.processor}</TableCell>
+                            <TableCell>{computer.process_generation}</TableCell>
+                            <TableCell>{computer.graphics}</TableCell>
+                            <TableCell>1.99</TableCell>
+                            <TableCell>
+                              <Radio
+                                checked={selectedValue === computer.computer_id}
+                                onChange={handleRadioChange}
+                                value={computer.computer_id}
+                                name="buyComputer"
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                  
                         <Button variant='contained' onClick={() => buyComputerAction()} 
                         sx={{top: 25}}>Buy selected computer</Button>
                     </>
