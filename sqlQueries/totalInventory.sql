@@ -1,10 +1,14 @@
-#SELECT store_id, sum(price) FROM computer_consignment.Computers WHERE is_available = 0 GROUP BY store_id;
-#SELECT * FROM computer_consignment.Computers;
-#SELECT * FROM computer_consignment.Store;
-
 USE computer_consignment;
-SELECT Computers.store_id, Store.store_name ,sum(Computers.price) 
-FROM Computers 
-INNER JOIN Store
-ON Computers.store_id = Store.store_id
-GROUP BY Computers.store_id; 
+#SELECT Computer.store_id, Store.store_name ,sum(Computer.price) 
+#FROM Computer
+#INNER JOIN Store
+#ON Computer.store_id = Store.store_id
+#GROUP BY Computer.store_id; 
+
+SELECT Store.store_id, Store.store_name, COALESCE(sum(Computer.price),0) AS Inventory
+FROM Store
+LEFT JOIN Computer
+ON Computer.store_id = Store.store_id
+WHERE Store.is_available = 1 AND Computer.is_available = 1
+GROUP BY Store.store_id
+ORDER BY Inventory DESC;
