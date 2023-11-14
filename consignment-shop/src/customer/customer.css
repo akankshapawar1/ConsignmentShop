@@ -3,13 +3,13 @@
 }
 
 .flex-filter {
-    flex: 1;
+    flex: 2.5;
     margin: 20px;
     padding: 20px;
 }  
 
 .flex-list {
-    flex: 3;
+    flex: 7.5;
     margin-top: 120px;
     padding: 20px;
 }  

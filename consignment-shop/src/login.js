@@ -304,7 +304,7 @@ function CreateStoreForm({ onStoreCreated }) {
             />
             <TextField
               fullWidth
-              label="Credentials"
+              label="Password"
               variant="outlined"
               name="credentials"
               type="password"
