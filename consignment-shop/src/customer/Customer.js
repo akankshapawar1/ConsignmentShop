@@ -13,7 +13,7 @@ import Paper from '@mui/material/Paper';
 import Checkbox from '@mui/material/Checkbox';
 import Radio from '@mui/material/Radio';
 
-function Customer(){
+function customer(){
     const [buyComputer, setBuyComputer] = useState(null)
     const [computerList, setComputerList] = useState([])
 
@@ -469,7 +469,7 @@ function Customer(){
                 </TableContainer>
             </>
         ) : (
-            <p>No computers selected for comparison.</p>
+            <p></p>
         )}
 
 
@@ -480,4 +480,4 @@ function Customer(){
         </>
     ) 
 }
-export default Customer;
+export default customer;

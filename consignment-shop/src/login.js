@@ -79,7 +79,7 @@ const styles = {
     }
   };
   
-function Login() {
+function login() {
 
   const navigate = useNavigate();
   const [showCreateStoreForm, setShowCreateStoreForm] = useState(false);
@@ -159,7 +159,7 @@ function Login() {
         navigate('/storeowner');
       }
     } catch (error) {
-      console.log(error.body)
+      //console.log(error.body)
       setMessage(error.body);
     }
   };
@@ -258,7 +258,7 @@ async function createStore(storeData) {
 }
 
 function CreateStoreForm({ onStoreCreated }) {
-  console.log('Create Store Form is now visible');
+  //console.log('Create Store Form is now visible');
   const initialFormState = {
     storeName: '',
     userID: '',
@@ -368,4 +368,4 @@ function CreateStoreForm({ onStoreCreated }) {
 }
 
 export {createStore,CreateStoreForm};
-export default Login;
+export default login;

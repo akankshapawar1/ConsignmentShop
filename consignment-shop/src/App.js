@@ -1,9 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Login from "./Login";
-import StoreOwner from "./StoreOwner";
-import SiteManager from './SiteManager';
-import Customer from './customer/Customer';
+import login from "./login";
+import storeOwner from "./storeowner";
+import siteManager from './sitemanager';
+import customer from './customer/customer';
 
 /* const styles = {
   app: {
@@ -22,10 +22,10 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/SiteManager" element={<SiteManager/>} />
-        <Route path="/StoreOwner" element={<StoreOwner />} />
-        <Route path="/Customer" element={<Customer/>} />
+        <Route path="/login" element={<login />} />
+        <Route path="/sitemanager" element={<siteManager/>} />
+        <Route path="/storeowner" element={<storeOwner />} />
+        <Route path="/customer" element={<customer />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
