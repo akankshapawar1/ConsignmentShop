@@ -3,7 +3,7 @@ import { Typography, Button, Container, Radio, RadioGroup, FormControlLabel, Tab
 import './style.css'; 
 import { useNavigate } from 'react-router-dom';
 
-function siteManager(){
+function SiteManager(){
 
     const [totalInventory, setTotalInventory] = useState([]);
     const [totalSum, setTotalSum] = useState(0);
@@ -233,4 +233,4 @@ function siteManager(){
         );
 }
 
-export default siteManager;
+export default SiteManager;
