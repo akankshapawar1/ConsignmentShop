@@ -80,11 +80,9 @@ const styles = {
   };
   
 function Login() {
+
   const navigate = useNavigate();
   const [showCreateStoreForm, setShowCreateStoreForm] = useState(false);
-  //const [showAddComputerForm, setShowAddComputerForm] = useState(false);
-  //const [createStoreMessage, setCreateStoreMessage] = useState('');
-  //const [addComputerMessage, setAddComputerMessage] = useState('');
   
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
@@ -96,6 +94,7 @@ function Login() {
     longitude: '',
     credentials: ''
   };
+
   //const [storeFormData, setStoreFormData] = useState(initialFormState);
   const handleCreateStoreClick = async (event) => {
     console.log('Create Store Button Clicked');
@@ -105,31 +104,51 @@ function Login() {
     else{
       setShowCreateStoreForm(false);
     }
-    
-
-
   };
+
   const navigateToCustomer = () => {
     navigate('/Customer');
   };
+
+  const fetchData = async (action) => {
+    try {
+        const response = await fetch('https://q15htzftq3.execute-api.us-east-1.amazonaws.com/beta/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(action)
+        });
+        return await response.json();
+    } catch (error) {
+        console.error(`Error during ${action}:`, error);
+        return null;
+    }
+  };
+
   const handleSubmit = async (event) => {
+
     event.preventDefault();
+    
     const payload = {
       body: JSON.stringify({ action: "login", user_id: userId, password })
     };
 
     try {
+      
       const response = await fetch('https://q15htzftq3.execute-api.us-east-1.amazonaws.com/beta/login', {
         method: 'POST',
         body: JSON.stringify(payload)
-      });
-
+      }); 
       const data = await response.json();
-      if (response.status === 401) {
+
+      const responseBody = JSON.parse(data.body);
+
+      if (data.statusCode === 401) {
+        console.log(responseBody)
         throw new Error('Invalid username or password');
       }
-      const responseBody = JSON.parse(data.body);
+
       setMessage(responseBody.message);
+
       if (responseBody.isSiteManager === true && data.statusCode === 200) {
         localStorage.setItem('username', userId);
         localStorage.setItem('password', password);
@@ -140,6 +159,7 @@ function Login() {
         navigate('/storeowner');
       }
     } catch (error) {
+      console.log(error.body)
       setMessage(error.body);
     }
   };
@@ -207,7 +227,8 @@ function Login() {
 async function createStore(storeData) {
   try {
     const create_payload = {
-      body: JSON.stringify({ action: "createStore", userID: storeData.userID, storeName:storeData.storeName, latitude:storeData.latitude,longitude:storeData.longitude,credentials:storeData.credentials })
+      body: JSON.stringify({ action: "createStore", userID: storeData.userID, storeName: storeData.storeName, 
+        latitude: storeData.latitude, longitude: storeData.longitude, credentials: storeData.credentials })
     };
     const response = await fetch('https://q15htzftq3.execute-api.us-east-1.amazonaws.com/beta/login', {
       method: 'POST',
@@ -215,23 +236,23 @@ async function createStore(storeData) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(create_payload)
-    });
+    }); 
 
     const responseData = await response.json();
     console.log(response);
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${responseData.status}`);
     }
     
     if (responseData.statusCode === 409) {
       return 'Store already exists or userID already has a store registered. Please choose a different name or credentials.';
     } else {
-      console.log('Store created:', responseData);
+      console.log('Store created: ', responseData);
       return 'Store created successfully!';
     }
   } catch (error) {
-    console.error('Error creating store:', error);
+    console.error('Error creating store: ', error);
     return 'Failed to create store. Please try again.';
   }
 }
