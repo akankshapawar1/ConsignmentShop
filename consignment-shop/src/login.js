@@ -110,20 +110,6 @@ function Login() {
     navigate('/Customer');
   };
 
-  const fetchData = async (action) => {
-    try {
-        const response = await fetch('https://q15htzftq3.execute-api.us-east-1.amazonaws.com/beta/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(action)
-        });
-        return await response.json();
-    } catch (error) {
-        console.error(`Error during ${action}:`, error);
-        return null;
-    }
-  };
-
   const handleSubmit = async (event) => {
 
     event.preventDefault();
@@ -138,29 +124,29 @@ function Login() {
         method: 'POST',
         body: JSON.stringify(payload)
       }); 
+
       const data = await response.json();
 
-      const responseBody = JSON.parse(data.body);
-
       if (data.statusCode === 401) {
-        console.log(responseBody)
-        throw new Error('Invalid username or password');
+        throw new Error('Invalid username or password, please try again!');
       }
 
+      const responseBody = JSON.parse(data.body);
       setMessage(responseBody.message);
+      console.log('Response message: ', responseBody.message)
 
       if (responseBody.isSiteManager === true && data.statusCode === 200) {
         localStorage.setItem('username', userId);
         localStorage.setItem('password', password);
-        navigate('/SiteManager');
+        navigate('/sitemanager');
       } else if (data.statusCode === 200 && responseBody.isSiteManager === false) {
         localStorage.setItem('username', userId);
         localStorage.setItem('password', password);
         navigate('/storeowner');
       }
     } catch (error) {
-      console.log(error.body)
-      setMessage(error.body);
+      //console.log(error.body)
+      setMessage(error.message);
     }
   };
   
