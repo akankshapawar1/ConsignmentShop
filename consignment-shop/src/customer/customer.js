@@ -13,7 +13,7 @@ import Paper from '@mui/material/Paper';
 import Checkbox from '@mui/material/Checkbox';
 import Radio from '@mui/material/Radio';
 
-function customer(){
+function Customer(){
     const [buyComputer, setBuyComputer] = useState(null)
     const [computerList, setComputerList] = useState([])
 
@@ -480,4 +480,4 @@ function customer(){
         </>
     ) 
 }
-export default customer;
+export default Customer;
