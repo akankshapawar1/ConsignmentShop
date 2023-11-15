@@ -319,7 +319,7 @@ function Customer(){
                       <TableHead>
                         <TableRow>
                           <TableCell style={{ fontWeight: 'bold' }}>Compare</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Computer ID</TableCell>
+                          <TableCell style={{ fontWeight: 'bold' }}>Computer Name</TableCell>
                           <TableCell style={{ fontWeight: 'bold' }}>Store ID</TableCell>
                           <TableCell style={{ fontWeight: 'bold' }}>Brand</TableCell>
                           <TableCell style={{ fontWeight: 'bold' }}>Price</TableCell>
@@ -342,7 +342,7 @@ function Customer(){
                                   }
                               />
                             </TableCell>
-                            <TableCell>{computer.computer_id}</TableCell>
+                            <TableCell>{computer.computer_name}</TableCell>
                             <TableCell>{computer.store_id}</TableCell>
                             <TableCell>{computer.brand}</TableCell>
                             <TableCell>{computer.price}</TableCell>

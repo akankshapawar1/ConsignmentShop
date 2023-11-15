@@ -85,6 +85,7 @@ function StoreOwner() {
     async function addComputer() {
         //const brand = document.getElementById('brand').value;
         const brand = selectedBrand
+        const computer_name = document.getElementById('name').value;
         const price = document.getElementById('price').value;
         const memory = document.getElementById('memory').value;
         const storage = document.getElementById('storage').value;
@@ -94,6 +95,7 @@ function StoreOwner() {
 
         const computerDetails = {
             brand,
+            computer_name,
             price,
             memory,
             storage,
@@ -208,6 +210,14 @@ function StoreOwner() {
             </FormControl>
             <TextField
               fullWidth
+              label="Name"
+              variant="outlined"
+              id="name"
+              required
+              margin="normal"
+            />
+            <TextField
+              fullWidth
               label="Price"
               variant="outlined"
               id="price"
@@ -271,7 +281,7 @@ function StoreOwner() {
                     <Table aria-label="inventory table">
                         <TableHead>
                             <TableRow>
-                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Computer ID</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Name</TableCell>
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Brand</TableCell>
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Memory</TableCell>
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Storage</TableCell>
@@ -285,7 +295,7 @@ function StoreOwner() {
                             {inventoryData.map((computer, index) => (
                                 <TableRow key={index}>
                                     <TableCell component="th" scope="row">
-                                        {computer.computer_id}
+                                        {computer.computer_name}
                                     </TableCell>
                                     <TableCell component="th" scope="row">
                                         {computer.brand}
