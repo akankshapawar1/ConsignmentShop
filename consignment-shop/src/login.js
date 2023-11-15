@@ -79,7 +79,7 @@ const styles = {
     }
   };
   
-function Login() {
+function login() {
 
   const navigate = useNavigate();
   const [showCreateStoreForm, setShowCreateStoreForm] = useState(false);
@@ -368,4 +368,4 @@ function CreateStoreForm({ onStoreCreated }) {
 }
 
 export {createStore,CreateStoreForm};
-export default Login;
+export default login;

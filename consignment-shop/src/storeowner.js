@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import './style.css'; 
 
-function StoreOwner() {
+function storeOwner() {
 
     const [inventoryData, setInventoryData] = useState([]);
     const [totalPrice, setTotalPrice] = useState(0);
@@ -343,4 +343,4 @@ function StoreOwner() {
 ); 
 }
 
-export default StoreOwner;
+export default storeOwner;
