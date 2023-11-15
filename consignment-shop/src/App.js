@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Login from "./login";
+import Login from "./Login";
 import StoreOwner from "./StoreOwner";
 import SiteManager from './SiteManager';
 import Customer from './customer/Customer';
