@@ -8,6 +8,11 @@ function SiteManager(){
     const [totalInventory, setTotalInventory] = useState([]);
     const [totalSum, setTotalSum] = useState(0);
     const [showInventory, setShowInventory] = useState(false);
+    const [showTotalInventory, setShowTotalInventory] = useState(false);
+    const [TotalBalance, setTotalBalance] = useState(false);
+    const [showTotalBalance, setShowTotalBalance] = useState(false);
+    const [storeBalance, setStoreBalance] = useState([]);
+    const [showStoreBalance, setShowStoreBalance] = useState(false);
     const [showDeleteComp,setShowDeleteComp] = useState(false);
     const [storeList, setStoreList] = useState([]);
     const [deleteSuccess, setDeleteSuccess] = useState(null);
@@ -49,14 +54,89 @@ function SiteManager(){
         setStoreToBeDeleted(event.target.value);
     }
 
+    async function toggleDisplayStoreInventory() {
+        if(showTotalInventory)
+        {
+            setShowTotalInventory(false);
+        }
+        if(showInventory)
+        {
+            setShowInventory(false);
+        }
+        if(showStoreBalance)
+        {
+            setShowStoreBalance(false);
+        }
+        else{
+            setShowInventory(true);
+            await displayStoreInventory();
+        }
+    }
+
     async function toggleDisplayTotalInventory() {
         if(showInventory)
         {
             setShowInventory(false);
         }
+        if(showStoreBalance)
+        {
+            setShowStoreBalance(false);
+        }
+        if(showTotalBalance)
+        {
+            setShowTotalBalance(false);
+        }
+        if(showTotalInventory)
+        {
+            setShowTotalInventory(false);
+        }
         else{
-            setShowInventory(true);
+            setShowTotalInventory(true);
             await displayTotalInventory();
+
+        }
+    }
+
+    async function toggleDisplayTotalBalance() {
+        if(showInventory)
+        {
+            setShowInventory(false);
+        }
+        if(showTotalInventory)
+        {
+            setShowTotalInventory(false);
+        }
+        if(showStoreBalance)
+        {
+            setShowStoreBalance(false);
+        }
+        if(showTotalBalance){
+            setShowTotalBalance(false);
+        }
+        else{
+            setShowTotalBalance(true);
+            await displayTotalBalance();
+        }
+    }
+
+    async function toggleDisplayStoreBalance() {
+        if(showInventory)
+        {
+            setShowInventory(false);
+        }
+        if(showTotalInventory)
+        {
+            setShowTotalInventory(false);
+        }
+        if(showTotalBalance){
+            setShowTotalBalance(false);
+        }
+        if(showStoreBalance){
+            setShowStoreBalance(false);
+        }
+        else{
+            setShowStoreBalance(true);
+            await displayStoreBalance();
         }
     }
 
@@ -81,17 +161,69 @@ function SiteManager(){
         };
         
         const responseData = await fetchData(requestBody);
+        if (responseData.statusCode === 200) {
+            const bodyObject = JSON.parse(responseData.body);
+            console.log('Parsed Body:', bodyObject);
+            const totalSum2 = bodyObject.totalInventory.reduce((acc, item) => acc + (Number(item['Inventory']) || 0), 0);
+            setTotalSum(totalSum2);
+        
+    }
+}
+
+    async function displayStoreInventory(){
+        const requestBody = { body : JSON.stringify({
+            action: "totalInventory"
+            })
+        };
+        
+        const responseData = await fetchData(requestBody);
 
         if (responseData.statusCode === 200) {
             const bodyObject = JSON.parse(responseData.body);
             console.log('Parsed Body:', bodyObject);
             setTotalInventory(bodyObject.totalInventory);
-            const totalSum2 = bodyObject.totalInventory.reduce((acc, item) => acc + (Number(item['Inventory']) || 0), 0);
-            setTotalSum(totalSum2);
         } else {
-            console.log('Failed to load the invetory');
+            console.log('Failed to load the inventory');
         }
     }
+
+
+    async function displayTotalBalance(){
+        const requestBody = { body : JSON.stringify({
+            action: "totalBalance"
+            })
+        };
+        
+        const responseData = await fetchData(requestBody);
+
+        if (responseData.statusCode === 200) {
+            const bodyObject = JSON.parse(responseData.body);
+            console.log('Parsed Body:', bodyObject);
+            const totalSum3 = bodyObject.totalBalance.reduce((acc, item) => acc + (Number(item['Inventory']) || 0), 0);
+            setTotalBalance(totalSum3);
+        } else {
+            console.log('Failed to load the inventory');
+        }
+    }
+
+
+    async function displayStoreBalance(){
+        const requestBody = { body : JSON.stringify({
+            action: "storeBalance"
+            })
+        };
+        
+        const responseData = await fetchData(requestBody);
+
+        if (responseData.statusCode === 200) {
+            const bodyObject = JSON.parse(responseData.body);
+            console.log('Parsed Body:', bodyObject);
+            setStoreBalance(bodyObject.storeBalance);
+        } else {
+            console.log('Failed to load the store balance');
+        }
+    }
+
 
     async function displayStoresToDelete(){
         const requestBody = { body : JSON.stringify({
@@ -153,15 +285,15 @@ function SiteManager(){
             Total Inventory
         </Button>
 
-        <Button variant="contained" sx={{ margin: 1 }}>
+        <Button variant="contained" onClick={() => {setShowDeleteComp(false);toggleDisplayStoreInventory();}} sx={{ margin: 1 }}>
             Store Inventory
         </Button>
 
-        <Button variant="contained" sx={{ margin: 1 }}>
+        <Button variant="contained" onClick={() => {setShowDeleteComp(false);toggleDisplayTotalBalance();}} sx={{ margin: 1 }}>
             Total Balance
         </Button>
 
-        <Button variant="contained" sx={{ margin: 1 }}>
+        <Button variant="contained" onClick={() => {setShowDeleteComp(false);toggleDisplayStoreBalance();}} sx={{ margin: 1 }}>
             Store Balance
         </Button>
 
@@ -176,7 +308,7 @@ function SiteManager(){
                         <TableRow>
                             <TableCell>Store ID</TableCell>
                             <TableCell>Store Name</TableCell>
-                            <TableCell>Inventory</TableCell>
+                            <TableCell>Total Inventory</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -187,15 +319,71 @@ function SiteManager(){
                                 <TableCell>{store['Inventory']}</TableCell>
                             </TableRow>
                         ))}
+
+                        {/*
+
                         <TableRow>
                             <TableCell><b>Total</b></TableCell>
                             <TableCell></TableCell>
                             <TableCell><b>{totalSum}</b></TableCell>
                         </TableRow>
+
+                        */}
                     </TableBody>
                 </Table>
             </TableContainer>
         )}
+
+        {showTotalInventory && (
+            <div>
+                <Typography variant="h6" gutterBottom>
+                    The Total Inventory is {totalSum}
+                </Typography>
+            </div>
+)}
+
+        {showTotalBalance && (
+            <div>
+                <Typography variant="h6" gutterBottom>
+                    The Total Balance is {TotalBalance}
+                </Typography>
+            </div>
+        )}  
+
+
+        {showStoreBalance && (
+            <TableContainer component={Paper} sx={{ marginTop: 2 }}>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Store ID</TableCell>
+                            <TableCell>Store Name</TableCell>
+                            <TableCell>Store Balance</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {storeBalance.map((store) => (
+                            <TableRow key={store.store_id}>
+                                <TableCell>{store.store_id}</TableCell>
+                                <TableCell>{store.store_name}</TableCell>
+                                <TableCell>{store['Inventory']}</TableCell>
+                            </TableRow>
+                        ))}
+
+                        {/*
+
+                        <TableRow>
+                            <TableCell><b>Total</b></TableCell>
+                            <TableCell></TableCell>
+                            <TableCell><b>{totalSum}</b></TableCell>
+                        </TableRow>
+
+                        */}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        )}
+
 
         {showDeleteComp && (
             <div>

@@ -51,6 +51,7 @@ function Customer(){
     },[compareList]);
 
     const handleRadioChange = (event) =>{
+        setSelectedValue(event.target.value);
         setBuyComputer(event.target.value);
     }
 
@@ -354,9 +355,9 @@ function Customer(){
                             <TableCell>1.99</TableCell>
                             <TableCell>
                               <Radio
-                                checked={selectedValue === computer.computer_id}
+                                checked={selectedValue === computer.computer_id.toString()}
                                 onChange={handleRadioChange}
-                                value={computer.computer_id}
+                                value={computer.computer_id.toString()}
                                 name="buyComputer"
                               />
                             </TableCell>
