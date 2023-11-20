@@ -12,6 +12,7 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Checkbox from '@mui/material/Checkbox';
 import Radio from '@mui/material/Radio';
+import { useNavigate } from 'react-router-dom';
 
 function Customer(){
     const [buyComputer, setBuyComputer] = useState(null)
@@ -97,7 +98,13 @@ function Customer(){
             </TableCell>
         );
     }
-
+    const navigate = useNavigate();
+    const handleStoreClick = (storeId) => {
+        
+        // Navigate to a new route, you can replace '/store-detail' with your desired path
+        // Pass storeId as a state or parameter depending on your routing setup
+        navigate(`/store-detail/${storeId}`);
+    }
     async function showAllStores(){
         const requestBody = { body : JSON.stringify({
             action: 'displayStoresToDelete'
@@ -394,13 +401,19 @@ function Customer(){
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {storeId.map((store_id, index)=>(
-                            <TableRow key={index}>
-                                <TableCell>{store_id}</TableCell>
-                                <TableCell>{storeName[index]}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
+                        {storeId.map((store_id, index) => (
+                        <TableRow key={index}>
+                        <TableCell>{store_id}</TableCell>
+                        <TableCell>
+                        <Button 
+                            onClick={() => handleStoreClick(store_id)}
+                        >
+                        {storeName[index]}
+                    </Button>
+            </TableCell>
+        </TableRow>
+    ))}
+</TableBody>
                 </Table>
             </TableContainer>
             {/* <table>
