@@ -3,12 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { Typography, Button, Container, TextField, Card, CardContent } from '@mui/material';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+
 import './style.css'; 
 
 function StoreOwner() {
-
     const [inventoryData, setInventoryData] = useState([]);
     const [totalPrice, setTotalPrice] = useState(0);
+    const [showAllComputers, setShowAllComputers] = useState(true);
+    const [computers, setComputers] = useState([]);
     const [showInventory, setShowInventory] = useState(false);
     const [showAddComputerForm, setShowAddComputerForm] = useState(false);
     const [selectedBrand, setSelectedBrand] = useState('');
@@ -37,6 +41,8 @@ function StoreOwner() {
       } else {
         setGreeting('Good Evening, ');
       }
+
+      getAllComputers(username)
     },[]);
 
     const fetchData = async (action) => {
@@ -53,14 +59,42 @@ function StoreOwner() {
       }
     };
 
+    async function getAllComputers(ownerId) {
+      console.log('Owner ID: ',ownerId)
+
+      const requestBody = { body : JSON.stringify({
+        action: "getAllComputers",
+        userID: ownerId,
+        })
+      };
+
+      const responseData = await fetchData(requestBody);
+
+      console.log('Response data from Generate inventory: ',responseData);
+      
+      if (responseData.statusCode === 200) {
+          console.log('Computer fetched:', responseData);
+          const responseBody = JSON.parse(responseData.body);
+          const computerList = responseBody.computerList;
+          const total = computerList.reduce((acc, computer) => acc + parseFloat(computer.price || 0), 0);
+          console.log('Total inventory: ',total);
+          console.log('Computer List: ', computerList)
+
+          setComputers(computerList)
+      } else {
+          console.log('Failed to get computers:', responseData);
+      }
+    }
+
     async function generateInventoryReport(ownerId) {
 
         console.log('Owner ID: ',ownerId);
 
         const requestBody = { body : JSON.stringify({
-            action: "getAllComputers",
-            userID: ownerId,
-            })
+          action: "getAllComputers",
+          userID: ownerId,
+        })
+
         };
 
         const responseData = await fetchData(requestBody);
@@ -83,7 +117,6 @@ function StoreOwner() {
     }
 
     async function addComputer() {
-        //const brand = document.getElementById('brand').value;
         const brand = selectedBrand
         const computer_name = document.getElementById('name').value;
         const price = document.getElementById('price').value;
@@ -125,6 +158,14 @@ function StoreOwner() {
         }
     }
 
+    async function editPrice(computerId) {
+      console.log('Edit price of computer ', computerId)
+    }
+
+    async function deleteComputer(computerId) {
+      console.log('Delete computer ', computerId)
+    }
+
     async function logout() {
         localStorage.removeItem('username');
         localStorage.removeItem('password');
@@ -132,13 +173,20 @@ function StoreOwner() {
     }
 
     return (
-      <div style={{ display: 'flex' }}>
+      <div>
       <Container maxWidth="md" style={{ flex: 1 }}>
-      {/* <Card>
-        <CardContent> */}
           <Typography variant="h4" gutterBottom style={{ fontSize: '28px', fontWeight: 'bold' }}>
             {greeting} <span id="ownerName">{username}!</span>
           </Typography>
+
+          <div style={{ display: 'flex' }}>
+
+          <Button
+            variant="contained"
+            color="primary"
+            style={{ marginTop: '15px', marginBottom: '15px', width: '300px', display: 'block'}}>
+            Your Computers
+          </Button>
 
           <Button
             variant="contained"
@@ -156,13 +204,6 @@ function StoreOwner() {
           <Button
             variant="contained"
             color="primary"
-            style={{ marginTop: '15px', marginBottom: '15px', width: '300px', display: 'block'}}>
-            Modify Price or Delete Computer
-          </Button>
-
-          <Button
-            variant="contained"
-            color="primary"
             style={{ marginTop: '15px', marginBottom: '15px', width: '300px', display: 'block'}}
             onClick={() => {generateInventoryReport(username);setShowAddComputerForm(false)}}>
             Generate Inventory
@@ -175,13 +216,77 @@ function StoreOwner() {
             onClick={logout}>
             Logout
           </Button>
-          {/* </CardContent>
-          </Card> */}
+
+          </div>
+
           </Container>
+
+          <Container style={{ flex: 1, minHeight: '600px' }}>
           
-          <Container maxWidth="md" style={{ flex: 1, minHeight: '600px' }}>
-          {/* <Card>
-          <CardContent> */}
+          {showAllComputers ? (
+            computers.length > 0 ? (
+                <TableContainer component={Paper} style={{ marginTop: 20}}>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Name</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Brand</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Memory</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Storage</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Processor</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Process Generation</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Graphics</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Price</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }} colSpan={2}>Actions</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {computers.map((computer, index) => (
+                              <TableRow key={index}>
+                                  <TableCell component="th" scope="row">
+                                      {computer.computer_name}
+                                  </TableCell>
+                                  <TableCell component="th" scope="row">
+                                      {computer.brand}
+                                  </TableCell>
+                                  <TableCell component="th" scope="row">
+                                      {computer.memory}
+                                  </TableCell>
+                                  <TableCell component="th" scope="row">
+                                      {computer.storage}
+                                  </TableCell>
+                                  <TableCell component="th" scope="row">
+                                      {computer.processor}
+                                  </TableCell>
+                                  <TableCell component="th" scope="row">
+                                      {computer.process_generation}
+                                  </TableCell>
+                                  <TableCell component="th" scope="row">
+                                      {computer.graphics}
+                                  </TableCell>
+                                  <TableCell align="center">${computer.price}</TableCell>
+                                  <TableCell>
+                                    <Button variant="outlined" color="primary" startIcon={<AttachMoneyIcon />} onClick={() => editPrice(computer.id)} />
+                                  </TableCell>
+                                  <TableCell>
+                                    <Button variant="outlined" color="secondary" startIcon={<DeleteIcon />} onClick={() => deleteComputer(computer.id)} />
+                                  </TableCell>
+                              </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+        ) : (
+          <Typography variant="h6" align="center" color="textSecondary" style={{ marginTop: 50 }}>
+            No computers available.
+          </Typography>
+        )
+      ) : (
+        <Typography variant="h6" align="center" color="textSecondary" style={{ marginTop: 20 }}>
+          
+        </Typography>
+      )}
+
           <div
             id="addComputerForm"
             className="form"

@@ -5,19 +5,6 @@ import StoreOwner from "./storeowner";
 import SiteManager from './sitemanager';
 import Customer from './customer/customer';
 
-/* const styles = {
-  app: {
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-    backgroundColor: '#f8f9fa',
-    padding: 20,
-    textAlign: 'center'
-  }
-}; */
 export default function App() {
   return (
     <Router>

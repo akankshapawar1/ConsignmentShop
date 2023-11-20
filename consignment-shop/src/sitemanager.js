@@ -142,7 +142,7 @@ function SiteManager(){
         localStorage.removeItem('password');
         navigate('/login');
     }
-        return (
+    return (
     <Container maxWidth="md">
 
         <Typography variant="h3" gutterBottom>
@@ -230,7 +230,7 @@ function SiteManager(){
         <Button variant="contained" color="primary" onClick={logout} fullWidth sx={{ marginTop: 2 }}>Logout</Button>
 
     </Container>
-        );
+    );
 }
 
 export default SiteManager;
