@@ -11,7 +11,14 @@ function StoreOwner() {
     const [totalPrice, setTotalPrice] = useState(0);
     const [showInventory, setShowInventory] = useState(false);
     const [showAddComputerForm, setShowAddComputerForm] = useState(false);
+
     const [selectedBrand, setSelectedBrand] = useState('');
+    const [selectedMemory, setSelectedMemory] = useState('');
+    const [selectedStorage, setSelectedStorage] = useState('');
+    const [selectedProcessor, setSelectedProcessor] = useState('');
+    const [selectedProcessGen, setSelectedProcessGen] = useState('');
+    const [selectedGraphics, setSelectedGraphics] = useState('');
+
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [greeting, setGreeting] = useState('');
@@ -83,15 +90,19 @@ function StoreOwner() {
     }
 
     async function addComputer() {
-        //const brand = document.getElementById('brand').value;
         const brand = selectedBrand
         const computer_name = document.getElementById('name').value;
         const price = document.getElementById('price').value;
-        const memory = document.getElementById('memory').value;
-        const storage = document.getElementById('storage').value;
-        const processor = document.getElementById('processor').value;
-        const processorGeneration = document.getElementById('processorGeneration').value;
-        const graphics = document.getElementById('graphics').value;
+        //const memory = document.getElementById('memory').value;
+        //const storage = document.getElementById('storage').value;
+        //const processor = document.getElementById('processor').value;
+        //const processorGeneration = document.getElementById('processorGeneration').value;
+        //const graphics = document.getElementById('graphics').value;
+        const memory = selectedMemory
+        const storage = selectedStorage
+        const processor = selectedProcessor
+        const processorGeneration = selectedProcessGen
+        const graphics = selectedGraphics
 
         const computerDetails = {
             brand,
@@ -120,6 +131,14 @@ function StoreOwner() {
         if (responseData.statusCode === 200) {
             document.getElementById('addComputerMessage').innerText = 'Computer added successfully!';
             console.log('Computer added: ', responseData);
+            document.getElementById('name').value = '';
+            document.getElementById('price').value = ''; 
+            setSelectedBrand('');
+            setSelectedMemory('');
+            setSelectedGraphics('');
+            setSelectedProcessGen('');
+            setSelectedProcessor('');
+            setSelectedStorage('');
         } else {
             document.getElementById('addComputerMessage').innerText = responseData.message || 'Failed to add computer. Please try again. Try different username';
         }
@@ -128,7 +147,7 @@ function StoreOwner() {
     async function logout() {
         localStorage.removeItem('username');
         localStorage.removeItem('password');
-        navigate('/login');
+        navigate('/customer');
     }
 
     return (
@@ -192,7 +211,7 @@ function StoreOwner() {
             </Typography>
 
             <FormControl fullWidth variant="outlined" margin="normal">
-              <InputLabel htmlFor="brand">Brand</InputLabel>
+              <InputLabel htmlFor="brand" required>Brand</InputLabel>
               <Select
                 label="Brand"
                 id="brand"
@@ -224,46 +243,89 @@ function StoreOwner() {
               required
               margin="normal"
             />
-            <TextField
-              fullWidth
-              label="Memory"
-              variant="outlined"
-              id="memory"
-              required
-              margin="normal"
-            />
-            <TextField
-              fullWidth
-              label="Storage"
-              variant="outlined"
-              id="storage"
-              required
-              margin="normal"
-            />
-            <TextField
-              fullWidth
-              label="Processor"
-              variant="outlined"
-              id="processor"
-              required
-              margin="normal"
-            />
-            <TextField
-              fullWidth
-              label="Processor Generation"
-              variant="outlined"
-              id="processorGeneration"
-              required
-              margin="normal"
-            />
-            <TextField
-              fullWidth
-              label="Graphics"
-              variant="outlined"
-              id="graphics"
-              required
-              margin="normal"
-            />
+            <FormControl fullWidth variant="outlined" margin="normal">
+              <InputLabel htmlFor="memory" required>Memory</InputLabel>
+              <Select
+                label="Memory"
+                id="memory"
+                value={selectedMemory}
+                onChange={(e) => setSelectedMemory(e.target.value)}
+                required>
+                <MenuItem key="1" value="1GB">1GB</MenuItem>
+                <MenuItem key="4" value="4GB">4GB</MenuItem>
+                <MenuItem key="8" value="8GB">8GB</MenuItem>
+                <MenuItem key="12" value="12GB">12GB</MenuItem>
+                <MenuItem key="16" value="16GB">16GB</MenuItem>
+                <MenuItem key="32" value="32GB">32GB</MenuItem>
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth variant="outlined" margin="normal">
+              <InputLabel htmlFor="storage" required>Storage</InputLabel>
+              <Select
+                label="Storage"
+                id="storage"
+                value={selectedStorage}
+                onChange={(e) => setSelectedStorage(e.target.value)}
+                required>
+                <MenuItem key="128" value="128GB">128GB</MenuItem>
+                <MenuItem key="256" value="256GB">256GB</MenuItem>
+                <MenuItem key="512" value="512GB">512GB</MenuItem>
+                <MenuItem key="1" value="1TB">1TB</MenuItem>
+                <MenuItem key="2" value="2TB">2TB</MenuItem>
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth variant="outlined" margin="normal">
+              <InputLabel htmlFor="processor" required>Processor</InputLabel>
+              <Select
+                label="Processor"
+                id="processor"
+                value={selectedProcessor}
+                onChange={(e) => setSelectedProcessor(e.target.value)}
+                required>
+                <MenuItem key="xion" value="Intel Xion">Intel Xion</MenuItem>
+                <MenuItem key="i9" value="Intel i9">Intel i9</MenuItem>
+                <MenuItem key="i7" value="Intel i7">Intel i7</MenuItem>
+                <MenuItem key="r9" value="AMD Ryzen 9">AMD Ryzen 9</MenuItem>
+                <MenuItem key="r7" value="AMD Ryzen 7">AMD Ryzen 7</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <FormControl fullWidth variant="outlined" margin="normal">
+              <InputLabel htmlFor="processGeneration" required>Process Generation</InputLabel>
+              <Select
+                label="Process Generation"
+                id="processGeneration"
+                value={selectedProcessGen}
+                onChange={(e) => setSelectedProcessGen(e.target.value)}
+                required>
+                <MenuItem key="13i" value="13th Gen Intel">13th Gen Intel</MenuItem>
+                <MenuItem key="12i" value="12th Gen Intel">12th Gen Intel</MenuItem>
+                <MenuItem key="11i" value="11th Gen Intel">11th Gen Intel</MenuItem>
+                <MenuItem key="7r" value="AMD Ryzen 7000 Series">AMD Ryzen 7000 Series</MenuItem>
+                <MenuItem key="6r" value="AMD Ryzen 6000 Series">AMD Ryzen 6000 Series</MenuItem>
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth variant="outlined" margin="normal">
+              <InputLabel htmlFor="graphics" required>Graphics</InputLabel>
+              <Select
+                label="Graphics"
+                id="graphics"
+                value={selectedGraphics}
+                onChange={(e) => setSelectedGraphics(e.target.value)}
+                required>
+                <MenuItem key="nv90" value="NVIDIA GeForce RTX 4090">NVIDIA GeForce RTX 4090</MenuItem>
+                <MenuItem key="nv80" value="NVIDIA GeForce RTX 4080">NVIDIA GeForce RTX 4080</MenuItem>
+                <MenuItem key="amd63" value="AMD Radeon Pro W6300">AMD Radeon Pro W6300</MenuItem>
+                <MenuItem key="amd64" value="AMD Radeon Pro W6400">AMD Radeon Pro W6400</MenuItem>
+                <MenuItem key="ii" value="Intel Integrated Graphics">Intel Integrated Graphics</MenuItem>
+                <MenuItem key="i730" value="Intel UHD Graphics 730">Intel UHD Graphics 730</MenuItem>
+                <MenuItem key="i770" value="Intel UHD Graphics 770">Intel UHD Graphics 770</MenuItem>
+              </Select>
+            </FormControl>
+
             <Button
               variant="contained"
               color="primary"

@@ -3,9 +3,11 @@
 }
 
 .flex-filter {
-    flex: 2.5;
+    flex: 2;
     margin: 20px;
     padding: 20px;
+    overflow: auto;
+    height: 800px;
 }  
 
 .flex-list {

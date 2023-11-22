@@ -26,7 +26,7 @@ export default function App() {
         <Route path="/sitemanager" element={<SiteManager/>} />
         <Route path="/storeowner" element={<StoreOwner />} />
         <Route path="/customer" element={<Customer />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/customer" replace />} />
       </Routes>
     </Router>
   );
