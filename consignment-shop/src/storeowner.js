@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Typography, Button, Container, TextField, Card, CardContent } from '@mui/material';
+import { Typography, Button, Container, TextField, Tooltip } from '@mui/material';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -15,6 +15,7 @@ function StoreOwner() {
     const [computers, setComputers] = useState([]);
     const [showInventory, setShowInventory] = useState(false);
     const [showAddComputerForm, setShowAddComputerForm] = useState(false);
+    const [editPriceMode, setEditPriceMode] = useState(false);
     const [selectedBrand, setSelectedBrand] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -43,7 +44,7 @@ function StoreOwner() {
       }
 
       getAllComputers(username)
-    },[]);
+    },[showAllComputers]);
 
     const fetchData = async (action) => {
       try {
@@ -60,6 +61,7 @@ function StoreOwner() {
     };
 
     async function getAllComputers(ownerId) {
+      setShowAllComputers(true)
       console.log('Owner ID: ',ownerId)
 
       const requestBody = { body : JSON.stringify({
@@ -87,6 +89,7 @@ function StoreOwner() {
     }
 
     async function generateInventoryReport(ownerId) {
+        setShowAllComputers(false)
 
         console.log('Owner ID: ',ownerId);
 
@@ -117,6 +120,7 @@ function StoreOwner() {
     }
 
     async function addComputer() {
+        setShowAllComputers(false)
         const brand = selectedBrand
         const computer_name = document.getElementById('name').value;
         const price = document.getElementById('price').value;
@@ -137,7 +141,6 @@ function StoreOwner() {
             graphics
         };
 
-        console.log("computerDetails: ", computerDetails)
         const requestBody = { body : JSON.stringify({
             action: "addComputer",
             credentials: password,
@@ -160,10 +163,21 @@ function StoreOwner() {
 
     async function editPrice(computerId) {
       console.log('Edit price of computer ', computerId)
+      setEditPriceMode = true
     }
 
     async function deleteComputer(computerId) {
       console.log('Delete computer ', computerId)
+
+      const requestBody = { body : JSON.stringify({
+        action: "deleteComputer",
+        computer_id: computerId,
+        })
+      }
+
+      const responseData = await fetchData(requestBody);
+
+      console.log("responseData: ", responseData)
     }
 
     async function logout() {
@@ -266,10 +280,14 @@ function StoreOwner() {
                                   </TableCell>
                                   <TableCell align="center">${computer.price}</TableCell>
                                   <TableCell>
-                                    <Button variant="outlined" color="primary" startIcon={<AttachMoneyIcon />} onClick={() => editPrice(computer.id)} />
+                                  <Tooltip title="Edit Price" arrow>
+                                    <Button variant="outlined" color="primary" startIcon={<AttachMoneyIcon />} onClick={() => editPrice(computer.computer_id)} />
+                                    </Tooltip>
                                   </TableCell>
                                   <TableCell>
-                                    <Button variant="outlined" color="secondary" startIcon={<DeleteIcon />} onClick={() => deleteComputer(computer.id)} />
+                                  <Tooltip title="Delete Computer" arrow>
+                                    <Button variant="outlined" color="secondary" startIcon={<DeleteIcon />} onClick={() => deleteComputer(computer.computer_id)} />
+                                    </Tooltip>
                                   </TableCell>
                               </TableRow>
                             ))}
