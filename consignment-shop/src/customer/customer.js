@@ -13,6 +13,11 @@ import Paper from '@mui/material/Paper';
 import Checkbox from '@mui/material/Checkbox';
 import Radio from '@mui/material/Radio';
 import { useNavigate } from 'react-router-dom';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
+import Typography from '@mui/material/Typography';
+import laptopImage from './laptop.png';
 
 function Customer(){
     const [buyComputer, setBuyComputer] = useState(null)
@@ -39,7 +44,7 @@ function Customer(){
     // searchbar
     const [searchInput, setSearchInput] = useState("");
     const [selectedValue, setSelectedValue] = React.useState('');
-
+    const [customerLocation, setCustomerLocation] = useState(null);
     const searchBar = () => {}
 
     useEffect(() => {
@@ -54,7 +59,35 @@ function Customer(){
     const handleRadioChange = (event) =>{
         setBuyComputer(event.target.value);
     }
-
+    useEffect(() => {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setCustomerLocation({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude
+            });
+            
+          },
+          (error) => {
+            console.error("Error getting location", error);
+          }
+        );
+        
+      }, []);
+    //   console.log(customerLocation)
+      
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Radius of the Earth in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c; // Distance in km
+      }
+    
+      
     const handleCheckboxChange = (event, computerId) =>{
         const isChecked = event.target.checked;
 
@@ -138,7 +171,12 @@ function Customer(){
 
         if (responseData.statusCode === 200) {
             const parsedList = JSON.parse(responseData.body);
-            const tempList = parsedList.computerList
+            console.log(parsedList);
+            const tempList = parsedList.computerList.map(item => ({
+                ...item,
+                distance: null, // Initialize distance as null
+                shippingCost: null // Initialize shipping cost as null
+            }));
             setComputerList(tempList);
 
             // brandList, memoryList ,storageList, processorList, processGenList, graphicsList
@@ -161,60 +199,79 @@ function Customer(){
             setGraphicsList([...new Set(grArr)]);
 
         } else {
+            console.log(responseData);  
             console.log('Failed');
         }
     }
-
-    async function buyComputerAction(){
-        if(buyComputer){
-            const requestBody = { body : JSON.stringify({
-                action:'buyComputer',
-                computer_id : buyComputer
+    function computeUpdatedListWithShipping(computers, customerLocation) {
+        return computers.map(computer => {
+            const distance = calculateDistance(
+                customerLocation.latitude,
+                customerLocation.longitude,
+                computer.latitude,
+                computer.longitude
+            );
+            const shippingCost = distance * 0.03;
+            return { ...computer, distance, shippingCost };
+        });
+    }
+    
+    useEffect(() => {
+        if (customerLocation && computerList.some(computer => computer.distance === null)) {
+            const updatedList = computeUpdatedListWithShipping(computerList, customerLocation);
+            setComputerList(updatedList);
+        }
+    }, [customerLocation, computerList]);
+    async function buyComputerAction(computerId) {
+        // Use `computerId` directly instead of `buyComputer` state.
+        if(computerId) {
+            const requestBody = {
+                body: JSON.stringify({
+                    action: 'buyComputer',
+                    computer_id: computerId // Modified line
                 })
             }; 
-            console.log('Computer to be sold: ',requestBody.computer_id);
-
-            const responseData2 = await fetchData(requestBody);
-
-            // console.log('Response data for buy computer: ',responseData2);
-
-            if(responseData2.statusCode === 200){
-                console.log('Sold the computer', responseData2);
+            console.log('Computer to be sold: ', computerId); // Modified line
+    
+            const responseData = await fetchData(requestBody);
+            if(responseData.statusCode === 200){
+                console.log('Sold the computer', responseData);
                 setSuccessMessage('Computer has been shipped!');
                 await displayAllComputers();
-                setBuyComputer(null);
-            }else{
+            } else {
                 console.log('Failed to sell the computer');
                 setSuccessMessage('Failed to buy the computer.');
             }
         }
     }
     // computer_id, store_id, brand, price, memory, storage, processor, process_generation, graphics
-    return(
-        <><div className="flex-container">
-            <div className="flex-filter">
+    return (
+        <>
+        <div className="flex-container">
+            <aside className="flex-filter">
                 <p><b>Filters</b></p>
                 {brandList && brandList.length > 0 ? (
-                    <><table>
-                        <thead>
-                            <tr>
-                                <th>Brand</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {brandList.map((brand, index) => (
-                                <tr key={index}>
-                                    <td><label><input type='checkbox'
-                                        value={brand}
-                                        name='checkBrand'
-                                    ></input></label>
-                                    {brand}</td>
+                    <>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Brand</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-
-                    <table>
+                            </thead>
+                            <tbody>
+                                {brandList.map((brand, index) => (
+                                    <tr key={index}>
+                                        <td>
+                                            <label>
+                                                <input type='checkbox' value={brand} name='checkBrand' />
+                                            </label>
+                                            {brand}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        <table>
                         <thead>
                             <tr>
                                 <th>Memory</th>
@@ -307,138 +364,118 @@ function Customer(){
                                 </tr>
                             ))}
                         </tbody>
-                    </table> 
-                    </>
-                ) : (
-                    <p></p>
-                )}
-                <Button variant='contained' sx={{top: 25}}>Filter</Button>
-            </div>
-            
-            <div className="flex-list">
-            <TextField id="search" label="location" variant="filled" fullWidth/>
-            <br></br>
-            <br></br>
-            {successMessage && <div>{successMessage}</div>}
-                {computerList && computerList.length > 0 ? (
-                    <><TableContainer component={Paper}>
-                    <Table aria-label="simple table">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell style={{ fontWeight: 'bold' }}>Compare</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Computer Name</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Store ID</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Brand</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Price</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Memory</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Storage</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Processor</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Processor Generation</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Graphics</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Shipping</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Buy</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {computerList.map((computer, index) => (
-                          <TableRow key={index}>
-                            <TableCell>
-                              <Checkbox
-                                onChange={(event) =>
-                                    handleCheckboxChange(event, computer.computer_id)
-                                  }
-                              />
-                            </TableCell>
-                            <TableCell>{computer.computer_name}</TableCell>
-                            <TableCell>{computer.store_id}</TableCell>
-                            <TableCell>{computer.brand}</TableCell>
-                            <TableCell>{computer.price}</TableCell>
-                            <TableCell>{computer.memory}</TableCell>
-                            <TableCell>{computer.storage}</TableCell>
-                            <TableCell>{computer.processor}</TableCell>
-                            <TableCell>{computer.process_generation}</TableCell>
-                            <TableCell>{computer.graphics}</TableCell>
-                            <TableCell>1.99</TableCell>
-                            <TableCell>
-                              <Radio
-                                checked={selectedValue === computer.computer_id}
-                                onChange={handleRadioChange}
-                                value={computer.computer_id}
-                                name="buyComputer"
-                              />
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                        <Button variant='contained' onClick={() => buyComputerAction()} 
-                        sx={{top: 25}}>Buy selected computer</Button>
-                        <Button variant='contained' sx={{top: 25, left: 25}} onClick={handleCompareButtonClick}>Compare selected computers</Button>
-                    </>
-                ) : (
-                    <p></p>
-                )}
-            </div>
-        </div>
-        <div>
-        <Box textAlign='right'>
-            <Button variant='contained' sx={{ position: "fixed", top: 50, right: 50, zIndex: 2000 }} onClick={()=> showAllStores()}>
-            Show all stores
-            </Button>
-        </Box>
-        </div>
-        <div style={{display: 'flex', justifyContent: 'right', alignItems: 'center'}}>
-        <div style={{ width: '70%' }}>
-        {storeId && storeId.length > 0 ? (
-            <>
-            <TableContainer component={Paper}>
-                <Table aria-label="simple table">
-                    <TableHead>
-                        <TableRow>
-                          <TableCell style={{ fontWeight: 'bold' }}>Store ID</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Store Name</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {storeId.map((store_id, index) => (
-                        <TableRow key={index}>
-                        <TableCell>{store_id}</TableCell>
-                        <TableCell>
-                        <Button 
-                            onClick={() => handleStoreClick(store_id)}
-                        >
-                        {storeName[index]}
-                    </Button>
-            </TableCell>
-        </TableRow>
-    ))}
-</TableBody>
-                </Table>
-            </TableContainer>
-            {/* <table>
-            <thead>
-                <tr>
-                    <th>Store ID</th>
-                    <th>Store Name</th>
-                </tr>
-            </thead>
-            <tbody>
-                {storeId.map((store_id, index) => (
-                    <tr key={index}>
-                        <td>{store_id}</td>
-                        <td>{storeName[index]}</td>
-                    </tr>
-                ))}
-            </tbody>
-        </table> */}</>
-        ):(
-            <p></p>
-        )}
+                    </table>
 
-        {compVisible && compareList.length > 1 ? (
-            <>
-                <TableContainer component={Paper}>
+                        {/* Repeat the structure for Memory, Storage, Processor, Processor Generation, Graphics */}
+                        {/* ... */}
+                    </>
+                ) : (
+                    <p>No filters available.</p>
+                )}
+                <Button variant='contained' sx={{ top: 25 }}>Filter</Button>
+            </aside>
+            <main className="flex-main">
+            <section className="flex-list">
+                
+                {successMessage && <div>{successMessage}</div>}
+                <div style={{ display: 'block', gap: '10px', justifyContent: 'center'  }}>
+                    {computerList.map((computer, index) => (
+                        <Card className="product-card" key={index}>
+                             <img src={laptopImage} alt="Computer" className="product-image" />
+                            <CardContent className="product-details">
+                            <Typography gutterBottom variant="h6" component="div">
+                                        {computer.computer_name}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Store ID: {computer.store_id}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Brand: {computer.brand}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Memory: {computer.memory}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Storage: {computer.storage}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Processor: {computer.processor}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Process Generation: {computer.process_generation}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Graphics: {computer.graphics}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Distance: {computer.distance ? `${computer.distance.toFixed(2)} miles` : 'N/A'}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Shipping Cost: {computer.shippingCost ? `$${computer.shippingCost.toFixed(2)}` : 'N/A'}
+                                    </Typography>
+                                    {/* <Typography variant="body2" color="text.secondary">
+                                        Price: {computer.price}
+                                    </Typography> */}
+                            </CardContent>
+                            <CardActions disableSpacing>
+                                <Checkbox onChange={(event) => handleCheckboxChange(event, computer.computer_id)} />
+                                {/* <Button size="small" onClick={() => setBuyComputer(computer.computer_id)} sx={{ mt: 2 }}>Buy</Button> */}
+                                <Button size="small" onClick={() => buyComputerAction(computer.computer_id)}>Buy</Button>
+                                <Typography variant="h6" color="primary" sx={{ marginLeft: 'auto' }} className="product-price">
+                                        ${computer.price}
+                                    </Typography>
+                            </CardActions>
+
+                        </Card>
+                    ))}
+                </div>
+                {/* <Button variant='contained' onClick={buyComputerAction} sx={{ mt: 2 }}>Buy Selected Computer</Button> */}
+                
+            </section>
+            </main>
+            
+        </div>
+        <Button variant='contained' onClick={handleCompareButtonClick} sx={{ position: "fixed", top: 100, right: 50, zIndex: 2000 }}>Compare Selected Computers</Button>
+
+        <div>
+            <Box textAlign='right'>
+                <Button variant='contained' sx={{ position: "fixed", top: 50, right: 50, zIndex: 2000 }} onClick={showAllStores}>
+                    Show all stores
+                </Button>
+            </Box>
+        </div>
+
+        <div className="store-display">
+            <div style={{ width: '100%' }}>
+                {storeId && storeId.length > 0 ? (
+                    <TableContainer component={Paper}>
+                        <Table aria-label="simple table">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell style={{ fontWeight: 'bold' }}>Store ID</TableCell>
+                                    <TableCell style={{ fontWeight: 'bold' }}>Store Name</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {storeId.map((store_id, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>{store_id}</TableCell>
+                                        <TableCell>
+                                            <Button onClick={() => handleStoreClick(store_id)}>
+                                                {storeName[index]}
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                ) : (
+                    <p></p>
+                )}
+
+                {compVisible && compareList.length > 1 ? (
+                    <TableContainer component={Paper}>
                     <Table aria-label="simple table">
                         <TableHead>
                             <TableRow>
@@ -456,6 +493,10 @@ function Customer(){
                             <TableRow>
                                 <TableCell style={{fontWeight: 'bold'}}>Price</TableCell>
                                 {compareList.map((compare, index) => renderFeatureCell(compare, index, 'price'))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell style={{fontWeight: 'bold'}}>Shipping Cost</TableCell>
+                                {compareList.map((compare, index) => renderFeatureCell(compare, index, 'shippingCost'))}
                             </TableRow>
                             <TableRow>
                                 <TableCell style={{fontWeight: 'bold'}}>Memory</TableCell>
@@ -480,17 +521,17 @@ function Customer(){
                         </TableBody>
                     </Table>
                 </TableContainer>
-            </>
-        ) : (
-            <p>No computers selected for comparison.</p>
-        )}
-
-
-
-
+                ) : (
+                    <p></p>
+                )}
+                
+            </div>
+            
         </div>
-        </div>
+        
+        
         </>
-    ) 
+        
+    );
 }
 export default Customer;
