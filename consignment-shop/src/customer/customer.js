@@ -15,7 +15,6 @@ import Radio from '@mui/material/Radio';
 import { useNavigate } from 'react-router-dom';
 
 function Customer(){
-    const [buyComputer, setBuyComputer] = useState(null)
     const [computerList, setComputerList] = useState([])
 
     const navigate = useNavigate();
@@ -23,7 +22,7 @@ function Customer(){
     // brandList, memoryList ,storageList, processorList, processGenList, graphicsList
     const priceFilter = ['$2001 or more', '$1501 - $2000', '$1001 - $1500', '$501 - $1000', '$500 or less']
     const brandFilter = ['Dell','HP','Lenovo', 'Apple', 'Acer', 'Asus', 'Toshiba'];
-    const memoryFilter = ['32GB or more', '16GB', '8GB', '4GB or less']
+    const memoryFilter = ['32GB or more', '16GB', '12GB', '8GB', '4GB or less']
     const storageFilter = ['2TB or more', '1TB', '512GB', '256GB or less']
     const processorFilter = ['Intel', 'AMD']
     const processGenFilter = ['13th Gen Intel','12th Gen Intel','11th Gen Intel','AMD Ryzen 7000 Series','AMD Ryzen 6000 Series']
@@ -31,7 +30,12 @@ function Customer(){
 
     const [graphicsSelected, setGraphicsSelected] = useState([]);
     const [generationSelected, setGenerationSelected] = useState([]);
-    const [filteredComputers, setFilteredComputers] = useState([]);
+    const [processorSelected, setProcessorSelected] = useState([]);
+    const [storageSelected, setStorageSelected] = useState([]);
+    const [memorySelected, setMemorySelected] = useState([]);
+    const [brandSelected, setBrandSelected] = useState([]);
+    const [priceSelected, setPriceSelected] = useState([]);
+     const [filteredComputers, setFilteredComputers] = useState([]);
 
     // display all stores
     const [storeId, setStoreId] = useState([]);
@@ -43,7 +47,8 @@ function Customer(){
 
     const [successMessage, setSuccessMessage] = useState('');
 
-    const [selectedValue, setSelectedValue] = React.useState('');
+    //const [selectedValue, setSelectedValue] = React.useState('');
+    //const [buyComputer, setBuyComputer] = useState(null)
 
     const navigateToLogin = () => {
         navigate('/login');
@@ -56,11 +61,12 @@ function Customer(){
 
     useEffect(() => {
         filterList();
-    }, [graphicsSelected]);
+        console.log('Filtered list: ', filteredComputers)
+    }, [graphicsSelected, generationSelected, processorSelected, storageSelected, memorySelected, brandSelected, priceSelected]);
 
-    const handleRadioChange = (event) =>{
+    /* const handleRadioChange = (event) =>{
         setBuyComputer(event.target.value);
-    }
+    } */
 
     const handleCheckboxChange = (event, computerId) =>{
         const isChecked = event.target.checked;
@@ -74,7 +80,6 @@ function Customer(){
     }
 
     const handleCompareButtonClick = () => {
-        // Update the visibility state when the button is clicked
         if(compareList.length > 1){
             setCompVisible(true);
         }
@@ -98,27 +103,155 @@ function Customer(){
         }
     }
     
-    const filterList = () => {
-        if (graphicsSelected.length === 0 && generationSelected === 0) {
-            setFilteredComputers(computerList); // No filter applied
-        } else {
-            const filteredList = computerList.filter(computer => 
-                graphicsSelected.includes(computer.graphics)
-            );
-            /* const filteredList2 = computerList.filter(computer => 
-                generationSelected.includes(computer.process_generation)
-            ); */
-            setFilteredComputers(filteredList);
-        }
-    }
-    
     const generationCheckboxChange = (event, generation) =>{
-        const isChecked = event.target.isChecked;
+        const isChecked = event.target.checked;
         if (isChecked){
             setGenerationSelected((prevList) => [...prevList, generation])
         }else{
-            setGenerationSelected((prevList) => prevList.filter(generation => !generation))
+            setGenerationSelected((prevList) => prevList.filter(g => g !== generation))
         }
+    }
+
+    const processorCheckboxChange = (event, processor) =>{
+        const isChecked = event.target.checked;
+        let gList = [];
+        if (processor === 'Intel') {
+            gList = ['Intel Xion', 'Intel i9', 'Intel i7'];
+        } else {
+            gList = ['AMD Ryzen 9', 'AMD Ryzen 7'];
+        }
+        if (isChecked){
+            setProcessorSelected(prevList => [...new Set([...prevList, ...gList])])
+        }else{
+            setProcessorSelected((prevList => prevList.filter(g => !gList.includes(g))))
+        }
+    }
+
+    const storageCheckboxChange = (event, storage) =>{
+        const isChecked = event.target.checked;
+        let gList = [];
+        if (storage === '2TB or more'){
+            gList = ['2TB']
+        }else if (storage === '1TB'){
+            gList = ['1TB']
+        }else if(storage === '512GB'){
+            gList = ['512GB']
+        }else{
+            gList = ['256GB', '128GB']
+        }
+        if (isChecked){
+            setStorageSelected(prevList => [...new Set([...prevList, ...gList])])
+        }else{
+            setStorageSelected((prevList => prevList.filter(g => !gList.includes(g))))
+        }
+    }
+
+    const memoryCheckboxChange = (event, memory) =>{
+        const isChecked = event.target.checked;
+        let gList = [];
+        // '32GB or more', '16GB', '8GB', '4GB or less'
+        if (memory === '32GB or more'){
+            gList = ['32GB']
+        }else if (memory === '16GB'){
+            gList = ['16GB']
+        }else if (memory === '12GB'){
+            gList = ['12GB']
+        }else if(memory === '8GB'){
+            gList = ['8GB']
+        }else{
+            gList = ['4GB', '1GB']
+        }
+        if (isChecked){
+            setMemorySelected(prevList => [...new Set([...prevList, ...gList])])
+        }else{
+            setMemorySelected((prevList => prevList.filter(g => !gList.includes(g))))
+        }
+    }
+
+    const brandCheckboxChange = (event, brand) =>{
+        const isChecked = event.target.checked;
+        if (isChecked){
+            setBrandSelected((prevList) => [...prevList, brand])
+        }else{
+            setBrandSelected((prevList) => prevList.filter(g => g !== brand))
+        }
+    }
+
+    const parsePriceRange = (range) => {
+        if (range.includes("or less")) {
+            const max = Number(range.replace(/[$ or less]/g, ''));
+            return { min: 0, max };
+        } else if (range.includes("or more")) {
+            const min = Number(range.replace(/[$ or more]/g, ''));
+            return { min, max: Number.MAX_SAFE_INTEGER };
+        } else {
+            const [min, max] = range.split(' - ').map(price => {
+                return price.replace(/[$,]/g, '');
+            }).map(Number);
+    
+            return { min: min || 0, max: max || Number.MAX_SAFE_INTEGER };
+        }
+    };
+    
+
+    const priceCheckboxChange = (event, priceRange) =>{
+        const isChecked = event.target.checked;
+        if (isChecked){
+            setPriceSelected((prevList) => [...prevList, priceRange])
+        }else{
+            setPriceSelected((prevList) => prevList.filter(range => range !== priceRange))
+        }
+    }
+
+    const filterList = () => {
+        let filteredList = computerList;
+
+        if (graphicsSelected.length > 0) {
+            filteredList = filteredList.filter(computer => 
+                graphicsSelected.includes(computer.graphics)
+            );
+        }
+
+        if (generationSelected.length > 0) {
+            filteredList = filteredList.filter(computer => 
+                generationSelected.includes(computer.process_generation)
+            );
+        }
+
+        if(processorSelected.length > 0){
+            filteredList = filteredList.filter(computer =>
+                processorSelected.includes(computer.processor)
+            );
+        }
+
+        if(storageSelected.length > 0){
+            filteredList = filteredList.filter(computer =>
+                storageSelected.includes(computer.storage)
+            );
+        }
+
+        if(memorySelected.length > 0){
+            filteredList = filteredList.filter(computer =>
+                memorySelected.includes(computer.memory)
+            );
+        }
+
+        if(brandSelected.length > 0){
+            filteredList = filteredList.filter(computer =>
+                brandSelected.includes(computer.brand)
+            );
+        }
+
+        if (priceSelected.length > 0) {
+            filteredList = filteredList.filter(computer => {
+                return priceSelected.some(range => {
+                    const { min, max } = parsePriceRange(range);
+                    return computer.price >= min && computer.price <= max;
+                });
+            });
+        }
+
+        setFilteredComputers(filteredList);
     }
 
     const fetchData = async (action) => {
@@ -187,14 +320,14 @@ function Customer(){
         }
     }
 
-    async function buyComputerAction(){
+    /* async function buyComputerAction(){
         if(buyComputer){
             const requestBody = { body : JSON.stringify({
                 action:'buyComputer',
                 computer_id : buyComputer
                 })
             }; 
-            console.log('Computer to be sold: ',requestBody.computer_id);
+            console.log('Computer to be sold: ', requestBody.computer_id);
 
             const responseData2 = await fetchData(requestBody);
 
@@ -210,7 +343,28 @@ function Customer(){
                 setSuccessMessage('Failed to buy the computer.');
             }
         }
+    } */
+
+    async function buyComputerAction(computerId){
+        const requestBody = { body: JSON.stringify({
+            action: 'buyComputer',
+            computer_id: computerId
+        })};
+        console.log('Computer to be sold: ', computerId);
+    
+        const responseData2 = await fetchData(requestBody);
+    
+        // Handle response...
+        if(responseData2.statusCode === 200){
+            console.log('Sold the computer', responseData2);
+            setSuccessMessage('Computer has been shipped!');
+            await displayAllComputers();
+        } else {
+            console.log('Failed to sell the computer');
+            setSuccessMessage('Failed to buy the computer.');
+        }
     }
+    
 
     // computer_id, store_id, brand, price, memory, storage, processor, process_generation, graphics
     return(
@@ -227,10 +381,18 @@ function Customer(){
                         <tbody>
                             {priceFilter.map((price, index) => (
                                 <tr key={index}>
-                                    <td><label><input type='checkbox'
-                                        value={price}
-                                        name='checkPrice'
-                                    ></input></label>
+                                    <td><label>
+                                            {/* <input type='checkbox'
+                                            value={price}
+                                            name='checkPrice'
+                                            ></input> */}
+                                            <Checkbox
+                                                value={price}
+                                                name='checkPrice'
+                                                onChange={(event) =>
+                                                priceCheckboxChange(event, price)
+                                            }/>
+                                        </label>
                                     {price}</td>
                                 </tr>
                             ))}
@@ -246,11 +408,20 @@ function Customer(){
                         <tbody>
                             {brandFilter.map((brand, index) => (
                                 <tr key={index}>
-                                    <td><label><input type='checkbox'
-                                        value={brand}
-                                        name='checkBrand'
-                                    ></input></label>
-                                    {brand}</td>
+                                    <td><label>
+                                            {/* <input type='checkbox'
+                                            value={brand}
+                                            name='checkBrand'
+                                            ></input> */}
+                                            <Checkbox
+                                                value={brand}
+                                                name='checkBrand'
+                                                onChange={(event) =>
+                                                brandCheckboxChange(event, brand)
+                                            }/>
+                                        </label>
+                                    {brand}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -265,10 +436,18 @@ function Customer(){
                         <tbody>
                             {memoryFilter.map((memory, index2) => (
                                 <tr key={index2}>
-                                    <td><label><input type='checkbox'
+                                    <td><label>
+                                        {/* <input type='checkbox'
                                         value={memory}
                                         name='checkMemory'
-                                    ></input></label>
+                                        ></input> */}
+                                        <Checkbox
+                                            value={memory}
+                                            name='checkMemory'
+                                            onChange={(event) =>
+                                            memoryCheckboxChange(event, memory)
+                                        }/>
+                                    </label>
                                     {memory}</td>
                                 </tr>
                             ))}
@@ -284,10 +463,18 @@ function Customer(){
                         <tbody>
                             {storageFilter.map((storage, index3) => (
                                 <tr key={index3}>
-                                    <td><label><input type='checkbox'
+                                    <td><label>
+                                        {/* <input type='checkbox'
                                         value={storage}
                                         name='checkStorage'
-                                    ></input></label>
+                                        ></input> */}
+                                        <Checkbox
+                                            value={storage}
+                                            name='checkStorage'
+                                            onChange={(event) =>
+                                            storageCheckboxChange(event, storage)
+                                        }/>
+                                    </label>
                                     {storage}</td>
                                 </tr>
                             ))}
@@ -303,10 +490,18 @@ function Customer(){
                         <tbody>
                             {processorFilter.map((processor, index4) => (
                                 <tr key={index4}>
-                                    <td><label><input type='checkbox'
+                                    <td><label>
+                                        {/* <input type='checkbox'
                                         value={processor}
                                         name='checkProcessor'
-                                    ></input></label>
+                                        ></input> */}
+                                        <Checkbox
+                                            value={processor}
+                                            name='checkProc'
+                                            onChange={(event) =>
+                                            processorCheckboxChange(event, processor)
+                                        }/>
+                                    </label>
                                     {processor}</td>
                                 </tr>
                             ))}
@@ -365,7 +560,6 @@ function Customer(){
                         </tbody>
                     </table> 
                     </>
-                <Button variant='contained' sx={{top: 25}}>Filter</Button>
             </div>
             
             <div className="flex-list">
@@ -373,7 +567,6 @@ function Customer(){
             <br></br>
             <br></br>
             {successMessage && <div>{successMessage}</div>}
-                {/* {computerList && computerList.length > 0 ? (  */}
                 {filteredComputers && filteredComputers.length > 0 ? (
                     <><TableContainer component={Paper}>
                     <Table aria-label="simple table">
@@ -412,12 +605,16 @@ function Customer(){
                             <TableCell>{computer.graphics}</TableCell>
                             <TableCell>1.99</TableCell>
                             <TableCell>
-                              <Radio
+                              {/* <Radio
                                 onChange={handleRadioChange}
                                 checked = {selectedValue === computer.computer_id}
                                 value = {computer.computer_id}
                                 name = "buyComputer"
-                              />
+                              /> */}
+                              <Button 
+                                variant="contained" 
+                                onClick={() => buyComputerAction(computer.computer_id)}
+                                >Buy</Button>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -425,8 +622,8 @@ function Customer(){
                     </Table>
                   </TableContainer>
                   
-                        <Button variant='contained' onClick={() => buyComputerAction()} 
-                        sx={{top: 25}}>Buy selected computer</Button>
+                        {/* <Button variant='contained' onClick={() => buyComputerAction()} 
+                        sx={{top: 25}}>Buy selected computer</Button> */}
 
                         <Button variant='contained' sx={{top: 25, left: 25}} onClick={handleCompareButtonClick}>Compare selected computers</Button>
                     </>
