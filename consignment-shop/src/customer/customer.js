@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import './customer.css';
@@ -56,59 +56,104 @@ function Customer(){
 
     const [customerLocation, setCustomerLocation] = useState(null);
 
-    useEffect(() => {
-        // Call the displayAllComputers function when the component mounts
-        displayAllComputers();
-    }, []);
-
-    useEffect(() => {
-        filterList();
-        console.log('Filtered list: ', filteredComputers)
-    }, [graphicsSelected, generationSelected, processorSelected, storageSelected, memorySelected, brandSelected, priceSelected]);
-
-    useEffect(() =>{
-        console.log('Compare list: ', compareList)
-    }, [compareList]);
-
-    useEffect(() => {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            setCustomerLocation({
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude
-            });
-            
-          },
-          (error) => {
-            console.error("Error getting location", error);
-          }
-        );
-        
-    }, []);
-
-    useEffect(() => {
-        if (customerLocation && computerList.some(computer => computer.distance === null)) {
-            const updatedList = computeUpdatedListWithShipping(computerList, customerLocation);
-            setFilteredComputers(updatedList);
-        }
-    }, [customerLocation, computerList]);
-
-    const handleCheckboxChange = (event, computerId) =>{
-        const isChecked = event.target.checked;
-        if (isChecked) {
-            // Checkbox is checked, add computer ID to the compareList
-            setCompareList((prevList) => [...prevList, computerId]);
-        } else {
-            // Checkbox is unchecked, remove computer ID from the compareList
-            setCompareList((prevList) => prevList.filter((id) => id !== computerId));
-        }
-    }
-
+    //new change
+    const [showStores, setShowStores] = useState(false);
+    const [showCompare, setShowCompare] = useState(false);
+    const bottomRef = useRef(null);
+    
     const handleCompareButtonClick = () => {
+        if(showCompare)
+        {
+            setShowCompare(false);
+        }
+        else{
+        setShowCompare(true);
+        }
+        setShowStores(false);
+        setTimeout(() => {
+            const element = document.querySelector(".store-display");
+            if (element) {
+                window.scrollTo({
+                    left: 0,
+                    top: element.offsetTop,
+                    behavior: "smooth"
+                });
+            }
+        }, 0);
         if(compareList.length > 1){
             setCompVisible(true);
         }
     };
+    async function showAllStores(){
+        if(showStores)
+        {
+            setShowStores(false);
+        }
+        else{
+            setShowStores(true);
+        }
+        // setShowStores(true);
+        setShowCompare(false);
+        setTimeout(() => {
+            const element = document.querySelector(".store-display");
+            if (element) {
+                window.scrollTo({
+                    left: 0,
+                    top: element.offsetTop,
+                    behavior: "smooth"
+                });
+            }
+        }, 0);
+        const requestBody = { body : JSON.stringify({
+            action: 'displayStoresToDelete'
+            })
+        };
+
+        const responseData = await fetchData(requestBody);
+
+        if (responseData.statusCode === 200){
+            const parsedList = JSON.parse(responseData.body);
+            // console.log('Retrieved stores: ', parsedList.storeList)
+            const temp = parsedList.storeList
+            const names = temp.map(item => item.store_name);
+            setStoreName(names)
+            const ids = temp.map(item=>item.store_id)
+            setStoreId(ids)
+        }else{
+            console.log('Failed');
+        }
+    }
+
+    useEffect(() => {
+        // Call the displayAllComputers function when the component mounts
+        displayAllComputers();
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+              setCustomerLocation({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
+              });
+            },
+            (error) => {
+              console.error("Error getting location", error);
+            }
+          );
+    }, []);
+
+    useEffect(() => {
+        filterList();
+        //console.log('Filtered list: ', filteredComputers)
+    }, [graphicsSelected, generationSelected, processorSelected, storageSelected, memorySelected, brandSelected, priceSelected]);
+
+    const updatedListWithShipping = useMemo(() => {
+        return customerLocation && filteredComputers.some(computer => computer.distance === null)
+            ? computeUpdatedListWithShipping(filteredComputers, customerLocation)
+            : filteredComputers;
+    }, [customerLocation, filteredComputers]);
+
+    useEffect(() => {
+        setFilteredComputers(updatedListWithShipping);
+    }, [updatedListWithShipping]);
       
     function calculateDistance(lat1, lon1, lat2, lon2) {
         const R = 6371; // Radius of the Earth in km
@@ -119,8 +164,19 @@ function Customer(){
                   Math.sin(dLon/2) * Math.sin(dLon/2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         return R * c; // Distance in km
+      }
+      
+    const handleCheckboxChange = (event, computerId) =>{
+        const isChecked = event.target.checked;
+        if (isChecked) {
+            // Checkbox is checked, add computer ID to the compareList
+            setCompareList((prevList) => [...prevList, computerId]);
+        } else {
+            // Checkbox is unchecked, remove computer ID from the compareList
+            setCompareList((prevList) => prevList.filter((id) => id !== computerId));
+        }
     }
-
+    
     const graphicsCheckboxChange = (event, graphics) => {
         const isChecked = event.target.checked;
         let gList = [];
@@ -319,26 +375,11 @@ function Customer(){
         navigate(`/store-detail/${storeId}`);
     }
 
-    async function showAllStores(){
-        const requestBody = { body : JSON.stringify({
-            action: 'displayStoresToDelete'
-            })
-        };
-
-        const responseData = await fetchData(requestBody);
-
-        if (responseData.statusCode === 200){
-            const parsedList = JSON.parse(responseData.body);
-            // console.log('Retrieved stores: ', parsedList.storeList)
-            const temp = parsedList.storeList
-            const names = temp.map(item => item.store_name);
-            setStoreName(names)
-            const ids = temp.map(item=>item.store_id)
-            setStoreId(ids)
-        }else{
-            console.log('Failed');
-        }
-    }
+    const sortedComputerList = filteredComputers.sort((a, b) => {
+        // Assuming distance is a number, sort by ascending order
+        // If distance can be undefined or null, you may need to add additional checks
+        return a.distance - b.distance;
+    });
 
     async function displayAllComputers(){
         const requestBody = { body : JSON.stringify({
@@ -586,9 +627,9 @@ function Customer(){
                 <div style={{ display: 'block', gap: '10px', justifyContent: 'center'  }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
                 {filteredComputers && filteredComputers.length > 0 ? (
-                    filteredComputers.map((computer) => (
-                        <Card className="product-card" key={computer.computer_id}>
-                            <img src={laptopImage} alt="Computer" className="product-image" />
+                    sortedComputerList.map((computer, index) => (
+                        <Card className="product-card" key={index}>
+                             <img src={laptopImage} alt="Computer" className="product-image" />
                             <CardContent className="product-details">
                                 <Typography gutterBottom variant="h6" component="div">
                                     {computer.computer_name}
@@ -612,6 +653,9 @@ function Customer(){
                                     Graphics: {computer.graphics}
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
+                                    Price: {computer.price}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
                                     Distance: {computer.distance ? `${computer.distance.toFixed(2)} miles` : 'N/A'}
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
@@ -620,9 +664,9 @@ function Customer(){
                             </CardContent>
                             <CardActions disableSpacing>
                                 <Checkbox onChange={(event) => handleCheckboxChange(event, computer.computer_id)} />
-                                <Button size="small" onClick={() => buyComputerAction(computer.computer_id)}>Buy</Button>
+                                <Button variant="contained" className="btn-primary" size="small" onClick={() => buyComputerAction(computer.computer_id)}>Buy</Button>
                                 <Typography variant="h6" color="primary" sx={{ marginLeft: 'auto' }} className="product-price">
-                                    ${computer.price}
+                                    ${(computer.price + computer.shippingCost).toFixed(2)}
                                 </Typography>
                             </CardActions>
                         </Card>
@@ -640,7 +684,7 @@ function Customer(){
 
         <div className="store-display">
             <div style={{ width: '100%' }}>
-                {storeId && storeId.length > 0 ? (
+                {showStores&& storeId && storeId.length > 0 ? (
                     <TableContainer component={Paper}>
                         <Table aria-label="simple table">
                             <TableHead>
@@ -667,7 +711,7 @@ function Customer(){
                     <p></p>
                 )}
 
-                {compVisible && compareList.length > 1 ? (
+                {showCompare && compVisible && compareList.length > 1 ? (
                     <TableContainer component={Paper}>
                     <Table aria-label="simple table">
                         <TableHead>
