@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import Login from "./login";
 import StoreOwner from "./storeowner";
 import SiteManager from './sitemanager';
-import Customer from './customer/customer';
+import Customer from './customer/Customer';
 
 export default function App() {
   return (

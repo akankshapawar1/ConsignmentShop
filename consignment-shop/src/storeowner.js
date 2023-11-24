@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import CheckIcon from '@mui/icons-material/Check';
 
 import './style.css'; 
 
@@ -15,7 +16,8 @@ function StoreOwner() {
     const [computers, setComputers] = useState([]);
     const [showInventory, setShowInventory] = useState(false);
     const [showAddComputerForm, setShowAddComputerForm] = useState(false);
-    const [editPriceMode, setEditPriceMode] = useState(false);
+    const [editingComputerId, setEditingComputerId] = useState(null);
+    const [editedPrice, setEditedPrice] = useState();
     const [selectedBrand, setSelectedBrand] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -44,7 +46,7 @@ function StoreOwner() {
       }
 
       getAllComputers(username)
-    },[showAllComputers]);
+    },[]);
 
     const fetchData = async (action) => {
       try {
@@ -62,7 +64,6 @@ function StoreOwner() {
 
     async function getAllComputers(ownerId) {
       setShowAllComputers(true)
-      console.log('Owner ID: ',ownerId)
 
       const requestBody = { body : JSON.stringify({
         action: "getAllComputers",
@@ -83,6 +84,7 @@ function StoreOwner() {
           console.log('Computer List: ', computerList)
 
           setComputers(computerList)
+          setTotalPrice(total);
       } else {
           console.log('Failed to get computers:', responseData);
       }
@@ -90,8 +92,6 @@ function StoreOwner() {
 
     async function generateInventoryReport(ownerId) {
         setShowAllComputers(false)
-
-        console.log('Owner ID: ',ownerId);
 
         const requestBody = { body : JSON.stringify({
           action: "getAllComputers",
@@ -163,8 +163,35 @@ function StoreOwner() {
 
     async function editPrice(computerId) {
       console.log('Edit price of computer ', computerId)
-      setEditPriceMode = true
+      setEditingComputerId(computerId);
     }
+
+    const handlePriceChange = (e) => {
+      setEditedPrice(e.target.value);
+    };
+
+    const handlePriceSubmit = async (computerId) => {
+      setEditingComputerId(null);
+
+      console.log("updated price: ", editedPrice)
+
+      const requestBody = { body : JSON.stringify({
+        action: "editPrice",
+        computer_id: computerId,
+        newPrice: editedPrice
+        })
+      }
+
+      const responseData = await fetchData(requestBody);
+      setShowAllComputers(true)
+
+      console.log("responseData: ", responseData.statusCode)
+
+      if (responseData.statusCode === 200) {
+        await getAllComputers(username)
+      }
+
+    };
 
     async function deleteComputer(computerId) {
       console.log('Delete computer ', computerId)
@@ -187,7 +214,7 @@ function StoreOwner() {
     }
 
     return (
-      <div>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
       <Container maxWidth="md" style={{ flex: 1 }}>
           <Typography variant="h4" gutterBottom style={{ fontSize: '28px', fontWeight: 'bold' }}>
             {greeting} <span id="ownerName">{username}!</span>
@@ -198,7 +225,12 @@ function StoreOwner() {
           <Button
             variant="contained"
             color="primary"
-            style={{ marginTop: '15px', marginBottom: '15px', width: '300px', display: 'block'}}>
+            style={{ marginTop: '15px', marginBottom: '15px', width: '300px', display: 'block'}}
+            onClick={() => {
+              setShowInventory(false)
+              setShowAddComputerForm(false)
+              setShowAllComputers(true)
+            }}>
             Your Computers
           </Button>
 
@@ -211,6 +243,7 @@ function StoreOwner() {
                 {setShowAddComputerForm(false)}
               else
                 {setShowAddComputerForm(true)}; 
+                setShowAllComputers(false)
               setShowInventory(false)}}>
             Add Computer
           </Button>
@@ -242,6 +275,12 @@ function StoreOwner() {
                 <TableContainer component={Paper} style={{ marginTop: 20}}>
                     <Table>
                         <TableHead>
+                        <TableRow>
+                                <TableCell component="th" scope="row">
+                                    <strong>Total Inventory</strong>
+                                </TableCell>
+                                <TableCell align="right"><strong>${totalPrice.toFixed(2)}</strong></TableCell>
+                            </TableRow>
                             <TableRow>
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Name</TableCell>
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Brand</TableCell>
@@ -251,7 +290,7 @@ function StoreOwner() {
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Process Generation</TableCell>
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Graphics</TableCell>
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Price</TableCell>
-                                <TableCell align="center" style={{ fontWeight: 'bold' }} colSpan={2}>Actions</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Delete</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -278,11 +317,33 @@ function StoreOwner() {
                                   <TableCell component="th" scope="row">
                                       {computer.graphics}
                                   </TableCell>
-                                  <TableCell align="center">${computer.price}</TableCell>
-                                  <TableCell>
-                                  <Tooltip title="Edit Price" arrow>
-                                    <Button variant="outlined" color="primary" startIcon={<AttachMoneyIcon />} onClick={() => editPrice(computer.computer_id)} />
-                                    </Tooltip>
+                                  <TableCell align="center">
+                                  {editingComputerId === computer.computer_id ? (
+                                    <>
+                                      <form
+                                        onSubmit={(e) => {
+                                          e.preventDefault();
+                                          handlePriceSubmit(computer.computer_id);
+                                        }}
+                                      >
+                                        <input
+                                          type="text"
+                                          value={editedPrice}
+                                          onChange={handlePriceChange}
+                                        />
+                                        <Tooltip title="Confirm Edit" arrow>
+                                          <Button type="submit" variant="outlined" color="primary" startIcon={<CheckIcon />} />
+                                        </Tooltip>
+                                      </form>
+                                    </>
+                                  ) : (
+                                    <>
+                                      {computer.price}
+                                      <Tooltip title="Edit Price" arrow>
+                                        <Button variant="outlined" color="primary" startIcon={<AttachMoneyIcon />} onClick={() => editPrice(computer.computer_id)} />
+                                      </Tooltip>
+                                    </>
+                                  )}
                                   </TableCell>
                                   <TableCell>
                                   <Tooltip title="Delete Computer" arrow>
@@ -396,8 +457,6 @@ function StoreOwner() {
             </Button>
             <Typography variant="body1" color="error" gutterBottom id="addComputerMessage"></Typography>
           </div>
-        {/* </CardContent>
-      </Card> */}
       {showInventory ? (
         inventoryData.length > 0 ? (
                 <TableContainer component={Paper} style={{ marginTop: 20}}>
