@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
 import './customer.css';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -11,7 +10,6 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Checkbox from '@mui/material/Checkbox';
-import Radio from '@mui/material/Radio';
 import { useNavigate } from 'react-router-dom';
 
 function Customer(){
@@ -47,9 +45,6 @@ function Customer(){
 
     const [successMessage, setSuccessMessage] = useState('');
 
-    //const [selectedValue, setSelectedValue] = React.useState('');
-    //const [buyComputer, setBuyComputer] = useState(null)
-
     const navigateToLogin = () => {
         navigate('/login');
     };
@@ -63,10 +58,6 @@ function Customer(){
         filterList();
         console.log('Filtered list: ', filteredComputers)
     }, [graphicsSelected, generationSelected, processorSelected, storageSelected, memorySelected, brandSelected, priceSelected]);
-
-    /* const handleRadioChange = (event) =>{
-        setBuyComputer(event.target.value);
-    } */
 
     const handleCheckboxChange = (event, computerId) =>{
         const isChecked = event.target.checked;
@@ -368,7 +359,16 @@ function Customer(){
 
     // computer_id, store_id, brand, price, memory, storage, processor, process_generation, graphics
     return(
-        <><div className="flex-container">
+        <>
+        <Box textAlign='right'>
+            <Button variant='contained' sx={{ position: "fixed", top: 50, right: 50, zIndex: 2000 }} onClick={()=> showAllStores()}>
+            Show all stores
+            </Button>
+            <Button variant='contained' sx={{ position: "fixed", top: 50, right: 250, zIndex: 2000 }} onClick={navigateToLogin}>
+            Login
+            </Button>
+        </Box>
+        <div className="flex-container">
             <div className="flex-filter">
                 {/* <p><b>Filters</b></p> */}
                     <>
@@ -563,9 +563,6 @@ function Customer(){
             </div>
             
             <div className="flex-list">
-            <TextField id="search" label="location" variant="filled" fullWidth/>
-            <br></br>
-            <br></br>
             {successMessage && <div>{successMessage}</div>}
                 {filteredComputers && filteredComputers.length > 0 ? (
                     <><TableContainer component={Paper}>
@@ -633,14 +630,14 @@ function Customer(){
             </div>
         </div>
         <div>
-        <Box textAlign='right'>
+        {/* <Box textAlign='right'>
             <Button variant='contained' sx={{ position: "fixed", top: 50, right: 50, zIndex: 2000 }} onClick={()=> showAllStores()}>
             Show all stores
             </Button>
             <Button variant='contained' sx={{ position: "fixed", top: 50, right: 250, zIndex: 2000 }} onClick={navigateToLogin}>
             Login
             </Button>
-        </Box>
+        </Box> */}
         </div>
         <div style={{display: 'flex', justifyContent: 'right', alignItems: 'center'}}>
         <div style={{ width: '70%' }}>
