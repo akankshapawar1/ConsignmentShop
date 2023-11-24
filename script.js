@@ -31,7 +31,7 @@ async function editPrice(parsedBody, headers) {
         // Start a transaction
     await queryDatabase('START TRANSACTION');
 
-    // Step 2: Delete the computer from Computer table using computer_id
+    // Step 2: Update price of the computer
     const updatePriceQuery = 'UPDATE Computers SET price = ? WHERE computer_id = ?;';
     const updatePriceQueryResult = await queryDatabase(updatePriceQuery, [newPrice, computer_id]);
     

@@ -1,17 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Typography, Button, Container, TextField, Card, CardContent } from '@mui/material';
+import { Typography, Button, Container, TextField, Tooltip } from '@mui/material';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import CheckIcon from '@mui/icons-material/Check';
+
 import './style.css'; 
 
 function StoreOwner() {
-
     const [inventoryData, setInventoryData] = useState([]);
     const [totalPrice, setTotalPrice] = useState(0);
+    const [showAllComputers, setShowAllComputers] = useState(true);
+    const [computers, setComputers] = useState([]);
     const [showInventory, setShowInventory] = useState(false);
     const [showAddComputerForm, setShowAddComputerForm] = useState(false);
-
+    const [editingComputerId, setEditingComputerId] = useState(null);
+    const [editedPrice, setEditedPrice] = useState();
     const [selectedBrand, setSelectedBrand] = useState('');
     const [selectedMemory, setSelectedMemory] = useState('');
     const [selectedStorage, setSelectedStorage] = useState('');
@@ -44,6 +50,8 @@ function StoreOwner() {
       } else {
         setGreeting('Good Evening, ');
       }
+
+      getAllComputers(username)
     },[]);
 
     const fetchData = async (action) => {
@@ -60,44 +68,39 @@ function StoreOwner() {
       }
     };
 
-    async function generateInventoryReport(ownerId) {
+    async function getAllComputers(ownerId) {
+      setShowAllComputers(true)
 
-        console.log('Owner ID: ',ownerId);
+      const requestBody = { body : JSON.stringify({
+        action: "getAllComputers",
+        userID: ownerId,
+        })
+      };
 
-        const requestBody = { body : JSON.stringify({
-            action: "getAllComputers",
-            userID: ownerId,
-            })
-        };
+      const responseData = await fetchData(requestBody);
 
-        const responseData = await fetchData(requestBody);
+      console.log('Response data from Generate inventory: ',responseData);
+      
+      if (responseData.statusCode === 200) {
+          console.log('Computer fetched:', responseData);
+          const responseBody = JSON.parse(responseData.body);
+          const computerList = responseBody.computerList;
+          const total = computerList.reduce((acc, computer) => acc + parseFloat(computer.price || 0), 0);
+          console.log('Total inventory: ',total);
+          console.log('Computer List: ', computerList)
 
-        console.log('Response data from Generate inventory: ',responseData);
-        
-        if (responseData.statusCode === 200) {
-            console.log('Computer fetched:', responseData);
-            const responseBody = JSON.parse(responseData.body);
-            const computerList = responseBody.computerList;
-            setInventoryData(computerList);
-            const total = computerList.reduce((acc, computer) => acc + parseFloat(computer.price || 0), 0);
-            setTotalPrice(total);
-            setShowInventory(true);
-            console.log('Total inventory: ',total);
-            console.log('Computer List: ', computerList)
-        } else {
-            console.log('Failed to get computers:', responseData);
-        }
+          setComputers(computerList)
+          setTotalPrice(total);
+      } else {
+          console.log('Failed to get computers:', responseData);
+      }
     }
 
     async function addComputer() {
+        setShowAllComputers(false)
         const brand = selectedBrand
         const computer_name = document.getElementById('name').value;
         const price = document.getElementById('price').value;
-        //const memory = document.getElementById('memory').value;
-        //const storage = document.getElementById('storage').value;
-        //const processor = document.getElementById('processor').value;
-        //const processorGeneration = document.getElementById('processorGeneration').value;
-        //const graphics = document.getElementById('graphics').value;
         const memory = selectedMemory
         const storage = selectedStorage
         const processor = selectedProcessor
@@ -115,7 +118,6 @@ function StoreOwner() {
             graphics
         };
 
-        console.log("computerDetails: ", computerDetails)
         const requestBody = { body : JSON.stringify({
             action: "addComputer",
             credentials: password,
@@ -139,9 +141,59 @@ function StoreOwner() {
             setSelectedProcessGen('');
             setSelectedProcessor('');
             setSelectedStorage('');
+            setShowAddComputerForm(false)
+            await getAllComputers(username)
         } else {
             document.getElementById('addComputerMessage').innerText = responseData.message || 'Failed to add computer. Please try again. Try different username';
         }
+    }
+
+    async function editPrice(computerId) {
+      console.log('Edit price of computer ', computerId)
+      setEditingComputerId(computerId);
+    }
+
+    const handlePriceChange = (e) => {
+      setEditedPrice(e.target.value);
+    };
+
+    const handlePriceSubmit = async (computerId) => {
+      setEditingComputerId(null);
+
+      console.log("updated price: ", editedPrice)
+
+      const requestBody = { body : JSON.stringify({
+        action: "editPrice",
+        computer_id: computerId,
+        newPrice: editedPrice
+        })
+      }
+
+      const responseData = await fetchData(requestBody);
+      setShowAllComputers(true)
+
+      console.log("responseData: ", responseData)
+
+      if (responseData.statusCode === 200) {
+        await getAllComputers(username)
+      }
+
+    };
+
+    async function deleteComputer(computerId) {
+      console.log('Delete computer ', computerId)
+
+      const requestBody = { body : JSON.stringify({
+        action: "deleteComputer",
+        computer_id: computerId,
+        })
+      }
+
+      const responseData = await fetchData(requestBody);
+
+      if (responseData.statusCode === 200) {
+        await getAllComputers(username)
+      }
     }
 
     async function logout() {
@@ -151,13 +203,25 @@ function StoreOwner() {
     }
 
     return (
-      <div style={{ display: 'flex' }}>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
       <Container maxWidth="md" style={{ flex: 1 }}>
-      {/* <Card>
-        <CardContent> */}
           <Typography variant="h4" gutterBottom style={{ fontSize: '28px', fontWeight: 'bold' }}>
             {greeting} <span id="ownerName">{username}!</span>
           </Typography>
+
+          <div style={{ display: 'flex' }}>
+
+          <Button
+            variant="contained"
+            color="primary"
+            style={{ marginTop: '15px', marginBottom: '15px', width: '300px', display: 'block'}}
+            onClick={() => {
+              setShowInventory(false)
+              setShowAddComputerForm(false)
+              setShowAllComputers(true)
+            }}>
+            Your Computers
+          </Button>
 
           <Button
             variant="contained"
@@ -168,23 +232,9 @@ function StoreOwner() {
                 {setShowAddComputerForm(false)}
               else
                 {setShowAddComputerForm(true)}; 
+                setShowAllComputers(false)
               setShowInventory(false)}}>
             Add Computer
-          </Button>
-
-          <Button
-            variant="contained"
-            color="primary"
-            style={{ marginTop: '15px', marginBottom: '15px', width: '300px', display: 'block'}}>
-            Modify Price or Delete Computer
-          </Button>
-
-          <Button
-            variant="contained"
-            color="primary"
-            style={{ marginTop: '15px', marginBottom: '15px', width: '300px', display: 'block'}}
-            onClick={() => {generateInventoryReport(username);setShowAddComputerForm(false)}}>
-            Generate Inventory
           </Button>
 
           <Button
@@ -194,13 +244,109 @@ function StoreOwner() {
             onClick={logout}>
             Logout
           </Button>
-          {/* </CardContent>
-          </Card> */}
+
+          </div>
+
           </Container>
+
+          <Container style={{ flex: 1, minHeight: '600px' }}>
           
-          <Container maxWidth="md" style={{ flex: 1, minHeight: '600px' }}>
-          {/* <Card>
-          <CardContent> */}
+          {showAllComputers ? (
+            computers.length > 0 ? (
+                <TableContainer component={Paper} style={{ marginTop: 20}}>
+                    <Table>
+                        <TableHead>
+                        <TableRow>
+                                <TableCell component="th" scope="row">
+                                    <strong>Total Inventory</strong>
+                                </TableCell>
+                                <TableCell align="right"><strong>${totalPrice.toFixed(2)}</strong></TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Name</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Brand</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Memory</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Storage</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Processor</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Process Generation</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Graphics</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Price</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Delete</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {computers.map((computer, index) => (
+                              <TableRow key={index}>
+                                  <TableCell component="th" scope="row">
+                                      {computer.computer_name}
+                                  </TableCell>
+                                  <TableCell component="th" scope="row">
+                                      {computer.brand}
+                                  </TableCell>
+                                  <TableCell component="th" scope="row">
+                                      {computer.memory}
+                                  </TableCell>
+                                  <TableCell component="th" scope="row">
+                                      {computer.storage}
+                                  </TableCell>
+                                  <TableCell component="th" scope="row">
+                                      {computer.processor}
+                                  </TableCell>
+                                  <TableCell component="th" scope="row">
+                                      {computer.process_generation}
+                                  </TableCell>
+                                  <TableCell component="th" scope="row">
+                                      {computer.graphics}
+                                  </TableCell>
+                                  <TableCell align="center">
+                                  {editingComputerId === computer.computer_id ? (
+                                    <>
+                                      <form
+                                        onSubmit={(e) => {
+                                          e.preventDefault();
+                                          handlePriceSubmit(computer.computer_id);
+                                        }}
+                                      >
+                                        <input
+                                          type="text"
+                                          value={editedPrice}
+                                          onChange={handlePriceChange}
+                                        />
+                                        <Tooltip title="Confirm Edit" arrow>
+                                          <Button type="submit" variant="outlined" color="primary" startIcon={<CheckIcon />} />
+                                        </Tooltip>
+                                      </form>
+                                    </>
+                                  ) : (
+                                    <>
+                                      {computer.price}
+                                      <Tooltip title="Edit Price" arrow>
+                                        <Button variant="outlined" color="primary" startIcon={<AttachMoneyIcon />} onClick={() => editPrice(computer.computer_id)} />
+                                      </Tooltip>
+                                    </>
+                                  )}
+                                  </TableCell>
+                                  <TableCell>
+                                  <Tooltip title="Delete Computer" arrow>
+                                    <Button variant="outlined" color="secondary" startIcon={<DeleteIcon />} onClick={() => deleteComputer(computer.computer_id)} />
+                                    </Tooltip>
+                                  </TableCell>
+                              </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+        ) : (
+          <Typography variant="h6" align="center" color="textSecondary" style={{ marginTop: 50 }}>
+            No computers available.
+          </Typography>
+        )
+      ) : (
+        <Typography variant="h6" align="center" color="textSecondary" style={{ marginTop: 20 }}>
+          
+        </Typography>
+      )}
+
           <div
             id="addComputerForm"
             className="form"
@@ -335,71 +481,6 @@ function StoreOwner() {
             </Button>
             <Typography variant="body1" color="error" gutterBottom id="addComputerMessage"></Typography>
           </div>
-        {/* </CardContent>
-      </Card> */}
-      {showInventory ? (
-        inventoryData.length > 0 ? (
-                <TableContainer component={Paper} style={{ marginTop: 20}}>
-                    <Table aria-label="inventory table">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Name</TableCell>
-                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Brand</TableCell>
-                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Memory</TableCell>
-                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Storage</TableCell>
-                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Processor</TableCell>
-                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Process Generation</TableCell>
-                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Graphics</TableCell>
-                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Price</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {inventoryData.map((computer, index) => (
-                                <TableRow key={index}>
-                                    <TableCell component="th" scope="row">
-                                        {computer.computer_name}
-                                    </TableCell>
-                                    <TableCell component="th" scope="row">
-                                        {computer.brand}
-                                    </TableCell>
-                                    <TableCell component="th" scope="row">
-                                        {computer.memory}
-                                    </TableCell>
-                                    <TableCell component="th" scope="row">
-                                        {computer.storage}
-                                    </TableCell>
-                                    <TableCell component="th" scope="row">
-                                        {computer.processor}
-                                    </TableCell>
-                                    <TableCell component="th" scope="row">
-                                        {computer.process_generation}
-                                    </TableCell>
-                                    <TableCell component="th" scope="row">
-                                        {computer.graphics}
-                                    </TableCell>
-                                    <TableCell align="center">${computer.price}</TableCell>
-                                </TableRow>
-                            ))}
-                            {/* Total Price Row */}
-                            <TableRow>
-                                <TableCell component="th" scope="row">
-                                    <strong>Total Inventory</strong>
-                                </TableCell>
-                                <TableCell align="right"><strong>${totalPrice.toFixed(2)}</strong></TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-        ) : (
-          <Typography variant="h6" align="center" color="textSecondary" style={{ marginTop: 50 }}>
-            No computers available.
-          </Typography>
-        )
-      ) : (
-        <Typography variant="h6" align="center" color="textSecondary" style={{ marginTop: 20 }}>
-          
-        </Typography>
-      )}
     </Container>
     </div>
 ); 
