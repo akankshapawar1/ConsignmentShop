@@ -89,7 +89,7 @@ function Customer(){
     useEffect(() => {
         if (customerLocation && computerList.some(computer => computer.distance === null)) {
             const updatedList = computeUpdatedListWithShipping(computerList, customerLocation);
-            setComputerList(updatedList);
+            setFilteredComputers(updatedList);
         }
     }, [customerLocation, computerList]);
 
@@ -592,9 +592,6 @@ function Customer(){
                             <CardContent className="product-details">
                                 <Typography gutterBottom variant="h6" component="div">
                                     {computer.computer_name}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Store ID: {computer.store_id}
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
                                     Brand: {computer.brand}

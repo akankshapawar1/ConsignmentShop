@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Typography, Button, Container, TextField, Tooltip } from '@mui/material';
+import { Typography, Button, Container, TextField, Tooltip, Input } from '@mui/material';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -306,11 +306,13 @@ function StoreOwner() {
                                           e.preventDefault();
                                           handlePriceSubmit(computer.computer_id);
                                         }}
+                                        style={{ display: 'flex', alignItems: 'center' }}
                                       >
-                                        <input
+                                        <Input
                                           type="text"
                                           value={editedPrice}
                                           onChange={handlePriceChange}
+                                          style={{ flex: 1, marginRight: '8px', width: '40px' }}
                                         />
                                         <Tooltip title="Confirm Edit" arrow>
                                           <Button type="submit" variant="outlined" color="primary" startIcon={<CheckIcon />} />
@@ -319,7 +321,7 @@ function StoreOwner() {
                                     </>
                                   ) : (
                                     <>
-                                      {computer.price}
+                                      {computer.price}&nbsp;&nbsp;
                                       <Tooltip title="Edit Price" arrow>
                                         <Button variant="outlined" color="primary" startIcon={<AttachMoneyIcon />} onClick={() => editPrice(computer.computer_id)} />
                                       </Tooltip>
