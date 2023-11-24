@@ -155,34 +155,39 @@ function Customer(){
             setGraphicsList([...new Set(grArr)]);
 
         } else {
+            console.log(responseData);
             console.log('Failed');
         }
     }
 
     async function buyComputerAction(){
         if(buyComputer){
-            const requestBody = { body : JSON.stringify({
-                action:'buyComputer',
-                computer_id : buyComputer
-                })
-            }; 
-            console.log('Computer to be sold: ',requestBody.computer_id);
-
-            const responseData2 = await fetchData(requestBody);
-
-            // console.log('Response data for buy computer: ',responseData2);
-
-            if(responseData2.statusCode === 200){
-                console.log('Sold the computer', responseData2);
-                setSuccessMessage('Computer has been shipped!');
-                await displayAllComputers();
-                setBuyComputer(null);
-            }else{
-                console.log('Failed to sell the computer');
-                setSuccessMessage('Failed to buy the computer.');
+            const requestBody = { body: JSON.stringify({
+                action: 'buyComputer',
+                computer_id: buyComputer
+            })};
+    
+            console.log('Computer to be sold: ', buyComputer);
+    
+            try {
+                const responseData2 = await fetchData(requestBody);
+    
+                if(responseData2.statusCode === 200){
+                    console.log('Sold the computer', responseData2);
+                    setSuccessMessage(`Computer has been shipped! `);
+                    await displayAllComputers();
+                    setBuyComputer(null);
+                } else {
+                    console.log('Failed to sell the computer', responseData2);
+                    setSuccessMessage('Failed to buy the computer. ' + responseData2.message);
+                }
+            } catch(error) {
+                console.error('Error during fetch: ', error);
+                setSuccessMessage('Failed to process the request.');
             }
         }
     }
+    
     // computer_id, store_id, brand, price, memory, storage, processor, process_generation, graphics
     return(
         <><div className="flex-container">

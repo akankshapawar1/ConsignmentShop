@@ -12,6 +12,15 @@ body {
     color: #333;
 }
 
+.infoBox {
+    border: 1px solid #ccc; /* light grey border */
+    padding: 20px;
+    margin: 10px 0;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* subtle shadow */
+    background-color: #f9f9f9; /* light background */
+}
+
 
 .successmessage {
     font-size: 1.875rem; 
