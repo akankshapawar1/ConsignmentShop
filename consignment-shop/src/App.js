@@ -4,6 +4,7 @@ import Login from "./login";
 import StoreOwner from "./storeowner";
 import SiteManager from './sitemanager';
 import Customer from './customer/customer';
+import StoreDetail from './StoreDetail';
 
 /* const styles = {
   app: {
@@ -23,6 +24,7 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/store-detail/:storeId" element={<StoreDetail />} />
         <Route path="/sitemanager" element={<SiteManager/>} />
         <Route path="/storeowner" element={<StoreOwner />} />
         <Route path="/customer" element={<Customer />} />
