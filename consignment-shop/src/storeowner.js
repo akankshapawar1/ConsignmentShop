@@ -218,7 +218,7 @@ function StoreOwner() {
         }
       }
       else {
-        console.log("Insufficient balance")
+        window.alert('Insufficient balance')
       }
       
     }
