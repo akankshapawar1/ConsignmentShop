@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Typography, Button, Container, TextField, Tooltip } from '@mui/material';
+import { Typography, Button, Container, TextField, Tooltip, Input } from '@mui/material';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -19,6 +20,13 @@ function StoreOwner() {
     const [editingComputerId, setEditingComputerId] = useState(null);
     const [editedPrice, setEditedPrice] = useState();
     const [selectedBrand, setSelectedBrand] = useState('');
+    const [selectedMemory, setSelectedMemory] = useState('');
+    const [selectedStorage, setSelectedStorage] = useState('');
+    const [selectedProcessor, setSelectedProcessor] = useState('');
+    const [selectedProcessGen, setSelectedProcessGen] = useState('');
+    const [selectedGraphics, setSelectedGraphics] = useState('');
+    const [storeProfit, setStoreProfit] = useState(0)
+
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [greeting, setGreeting] = useState('');
@@ -46,7 +54,11 @@ function StoreOwner() {
       }
 
       getAllComputers(username)
-    },[]);
+      getStoreProfit(username)
+
+      console.log("storeProfit: ", storeProfit)
+
+    },[storeProfit]);
 
     const fetchData = async (action) => {
       try {
@@ -62,8 +74,29 @@ function StoreOwner() {
       }
     };
 
+    async function getStoreProfit(username) {
+      const requestBody = { body : JSON.stringify({
+        action: "getStoreProfit",
+        user_id: username,
+        })
+      };
+
+      const responseData = await fetchData(requestBody)
+      const parsedResponseData = JSON.parse(responseData)
+
+      if (parsedResponseData.statusCode === 200) {
+        const parsedBody = JSON.parse(parsedResponseData.body)
+
+        setStoreProfit(parsedBody.storeProfit)
+      }
+      else {
+        console.error("Unable to fetch store profit")
+      }
+    }
+
     async function getAllComputers(ownerId) {
       setShowAllComputers(true)
+      document.getElementById('addComputerMessage').innerText = '';
 
       const requestBody = { body : JSON.stringify({
         action: "getAllComputers",
@@ -72,8 +105,6 @@ function StoreOwner() {
       };
 
       const responseData = await fetchData(requestBody);
-
-      console.log('Response data from Generate inventory: ',responseData);
       
       if (responseData.statusCode === 200) {
           console.log('Computer fetched:', responseData);
@@ -90,45 +121,16 @@ function StoreOwner() {
       }
     }
 
-    async function generateInventoryReport(ownerId) {
-        setShowAllComputers(false)
-
-        const requestBody = { body : JSON.stringify({
-          action: "getAllComputers",
-          userID: ownerId,
-        })
-
-        };
-
-        const responseData = await fetchData(requestBody);
-
-        console.log('Response data from Generate inventory: ',responseData);
-        
-        if (responseData.statusCode === 200) {
-            console.log('Computer fetched:', responseData);
-            const responseBody = JSON.parse(responseData.body);
-            const computerList = responseBody.computerList;
-            setInventoryData(computerList);
-            const total = computerList.reduce((acc, computer) => acc + parseFloat(computer.price || 0), 0);
-            setTotalPrice(total);
-            setShowInventory(true);
-            console.log('Total inventory: ',total);
-            console.log('Computer List: ', computerList)
-        } else {
-            console.log('Failed to get computers:', responseData);
-        }
-    }
-
     async function addComputer() {
         setShowAllComputers(false)
         const brand = selectedBrand
         const computer_name = document.getElementById('name').value;
         const price = document.getElementById('price').value;
-        const memory = document.getElementById('memory').value;
-        const storage = document.getElementById('storage').value;
-        const processor = document.getElementById('processor').value;
-        const processorGeneration = document.getElementById('processorGeneration').value;
-        const graphics = document.getElementById('graphics').value;
+        const memory = selectedMemory
+        const storage = selectedStorage
+        const processor = selectedProcessor
+        const processorGeneration = selectedProcessGen
+        const graphics = selectedGraphics
 
         const computerDetails = {
             brand,
@@ -155,7 +157,16 @@ function StoreOwner() {
 
         if (responseData.statusCode === 200) {
             document.getElementById('addComputerMessage').innerText = 'Computer added successfully!';
-            console.log('Computer added: ', responseData);
+            document.getElementById('name').value = '';
+            document.getElementById('price').value = ''; 
+            setSelectedBrand('');
+            setSelectedMemory('');
+            setSelectedGraphics('');
+            setSelectedProcessGen('');
+            setSelectedProcessor('');
+            setSelectedStorage('');
+            setShowAddComputerForm(false)
+            await getAllComputers(username)
         } else {
             document.getElementById('addComputerMessage').innerText = responseData.message || 'Failed to add computer. Please try again. Try different username';
         }
@@ -185,8 +196,6 @@ function StoreOwner() {
       const responseData = await fetchData(requestBody);
       setShowAllComputers(true)
 
-      console.log("responseData: ", responseData.statusCode)
-
       if (responseData.statusCode === 200) {
         await getAllComputers(username)
       }
@@ -202,15 +211,23 @@ function StoreOwner() {
         })
       }
 
-      const responseData = await fetchData(requestBody);
+      if (storeProfit >= 25) {
+        const responseData = await fetchData(requestBody);
 
-      console.log("responseData: ", responseData)
+        if (responseData.statusCode === 200) {
+          await getAllComputers(username)
+        }
+      }
+      else {
+        console.log("Insufficient balance")
+      }
+      
     }
 
     async function logout() {
         localStorage.removeItem('username');
         localStorage.removeItem('password');
-        navigate('/login');
+        navigate('/customer');
     }
 
     return (
@@ -252,14 +269,6 @@ function StoreOwner() {
             variant="contained"
             color="primary"
             style={{ marginTop: '15px', marginBottom: '15px', width: '300px', display: 'block'}}
-            onClick={() => {generateInventoryReport(username);setShowAddComputerForm(false)}}>
-            Generate Inventory
-          </Button>
-
-          <Button
-            variant="contained"
-            color="primary"
-            style={{ marginTop: '15px', marginBottom: '15px', width: '300px', display: 'block'}}
             onClick={logout}>
             Logout
           </Button>
@@ -272,7 +281,7 @@ function StoreOwner() {
           
           {showAllComputers ? (
             computers.length > 0 ? (
-                <TableContainer component={Paper} style={{ marginTop: 20}}>
+                <TableContainer component={Paper} style={{ marginTop: 20, width: '100%'}}>
                     <Table>
                         <TableHead>
                         <TableRow>
@@ -280,6 +289,10 @@ function StoreOwner() {
                                     <strong>Total Inventory</strong>
                                 </TableCell>
                                 <TableCell align="right"><strong>${totalPrice.toFixed(2)}</strong></TableCell>
+                                <TableCell component="th" scope="row">
+                                    <strong>Store Profit</strong>
+                                </TableCell>
+                                <TableCell align="right"><strong>${storeProfit.toFixed(2)}</strong></TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Name</TableCell>
@@ -289,6 +302,7 @@ function StoreOwner() {
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Processor</TableCell>
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Process Generation</TableCell>
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Graphics</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Sold</TableCell>
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Price</TableCell>
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Delete</TableCell>
                             </TableRow>
@@ -317,6 +331,9 @@ function StoreOwner() {
                                   <TableCell component="th" scope="row">
                                       {computer.graphics}
                                   </TableCell>
+                                  <TableCell component="th" scope="row">
+                                    {computer.is_available === 1 ? 'No' : 'Yes'}
+                                  </TableCell>
                                   <TableCell align="center">
                                   {editingComputerId === computer.computer_id ? (
                                     <>
@@ -325,11 +342,13 @@ function StoreOwner() {
                                           e.preventDefault();
                                           handlePriceSubmit(computer.computer_id);
                                         }}
+                                        style={{ display: 'flex', alignItems: 'center' }}
                                       >
-                                        <input
+                                        <Input
                                           type="text"
                                           value={editedPrice}
                                           onChange={handlePriceChange}
+                                          style={{ flex: 1, marginRight: '8px', width: '40px' }}
                                         />
                                         <Tooltip title="Confirm Edit" arrow>
                                           <Button type="submit" variant="outlined" color="primary" startIcon={<CheckIcon />} />
@@ -337,12 +356,20 @@ function StoreOwner() {
                                       </form>
                                     </>
                                   ) : (
-                                    <>
-                                      {computer.price}
-                                      <Tooltip title="Edit Price" arrow>
-                                        <Button variant="outlined" color="primary" startIcon={<AttachMoneyIcon />} onClick={() => editPrice(computer.computer_id)} />
-                                      </Tooltip>
-                                    </>
+                                    <TableCell>
+                                      <td>{computer.price}&nbsp;&nbsp;</td>
+                                    <td>
+                                      {computer.is_available === 1 ? (
+                                        <Tooltip title="Edit Price" arrow>
+                                          <Button variant="outlined" color="primary" startIcon={<AttachMoneyIcon />} onClick={() => editPrice(computer.computer_id)} />
+                                        </Tooltip>
+                                      ) : (
+                                        <Tooltip title="Computer not available" arrow>
+                                          <Button variant="outlined" color="primary" startIcon={<AttachMoneyIcon />} disabled />
+                                        </Tooltip>
+                                      )}
+                                    </td>
+                                    </TableCell>
                                   )}
                                   </TableCell>
                                   <TableCell>
@@ -376,7 +403,7 @@ function StoreOwner() {
             </Typography>
 
             <FormControl fullWidth variant="outlined" margin="normal">
-              <InputLabel htmlFor="brand">Brand</InputLabel>
+              <InputLabel htmlFor="brand" required>Brand</InputLabel>
               <Select
                 label="Brand"
                 id="brand"
@@ -408,46 +435,89 @@ function StoreOwner() {
               required
               margin="normal"
             />
-            <TextField
-              fullWidth
-              label="Memory"
-              variant="outlined"
-              id="memory"
-              required
-              margin="normal"
-            />
-            <TextField
-              fullWidth
-              label="Storage"
-              variant="outlined"
-              id="storage"
-              required
-              margin="normal"
-            />
-            <TextField
-              fullWidth
-              label="Processor"
-              variant="outlined"
-              id="processor"
-              required
-              margin="normal"
-            />
-            <TextField
-              fullWidth
-              label="Processor Generation"
-              variant="outlined"
-              id="processorGeneration"
-              required
-              margin="normal"
-            />
-            <TextField
-              fullWidth
-              label="Graphics"
-              variant="outlined"
-              id="graphics"
-              required
-              margin="normal"
-            />
+            <FormControl fullWidth variant="outlined" margin="normal">
+              <InputLabel htmlFor="memory" required>Memory</InputLabel>
+              <Select
+                label="Memory"
+                id="memory"
+                value={selectedMemory}
+                onChange={(e) => setSelectedMemory(e.target.value)}
+                required>
+                <MenuItem key="1" value="1GB">1GB</MenuItem>
+                <MenuItem key="4" value="4GB">4GB</MenuItem>
+                <MenuItem key="8" value="8GB">8GB</MenuItem>
+                <MenuItem key="12" value="12GB">12GB</MenuItem>
+                <MenuItem key="16" value="16GB">16GB</MenuItem>
+                <MenuItem key="32" value="32GB">32GB</MenuItem>
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth variant="outlined" margin="normal">
+              <InputLabel htmlFor="storage" required>Storage</InputLabel>
+              <Select
+                label="Storage"
+                id="storage"
+                value={selectedStorage}
+                onChange={(e) => setSelectedStorage(e.target.value)}
+                required>
+                <MenuItem key="128" value="128GB">128GB</MenuItem>
+                <MenuItem key="256" value="256GB">256GB</MenuItem>
+                <MenuItem key="512" value="512GB">512GB</MenuItem>
+                <MenuItem key="1" value="1TB">1TB</MenuItem>
+                <MenuItem key="2" value="2TB">2TB</MenuItem>
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth variant="outlined" margin="normal">
+              <InputLabel htmlFor="processor" required>Processor</InputLabel>
+              <Select
+                label="Processor"
+                id="processor"
+                value={selectedProcessor}
+                onChange={(e) => setSelectedProcessor(e.target.value)}
+                required>
+                <MenuItem key="xion" value="Intel Xion">Intel Xion</MenuItem>
+                <MenuItem key="i9" value="Intel i9">Intel i9</MenuItem>
+                <MenuItem key="i7" value="Intel i7">Intel i7</MenuItem>
+                <MenuItem key="r9" value="AMD Ryzen 9">AMD Ryzen 9</MenuItem>
+                <MenuItem key="r7" value="AMD Ryzen 7">AMD Ryzen 7</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <FormControl fullWidth variant="outlined" margin="normal">
+              <InputLabel htmlFor="processGeneration" required>Process Generation</InputLabel>
+              <Select
+                label="Process Generation"
+                id="processGeneration"
+                value={selectedProcessGen}
+                onChange={(e) => setSelectedProcessGen(e.target.value)}
+                required>
+                <MenuItem key="13i" value="13th Gen Intel">13th Gen Intel</MenuItem>
+                <MenuItem key="12i" value="12th Gen Intel">12th Gen Intel</MenuItem>
+                <MenuItem key="11i" value="11th Gen Intel">11th Gen Intel</MenuItem>
+                <MenuItem key="7r" value="AMD Ryzen 7000 Series">AMD Ryzen 7000 Series</MenuItem>
+                <MenuItem key="6r" value="AMD Ryzen 6000 Series">AMD Ryzen 6000 Series</MenuItem>
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth variant="outlined" margin="normal">
+              <InputLabel htmlFor="graphics" required>Graphics</InputLabel>
+              <Select
+                label="Graphics"
+                id="graphics"
+                value={selectedGraphics}
+                onChange={(e) => setSelectedGraphics(e.target.value)}
+                required>
+                <MenuItem key="nv90" value="NVIDIA GeForce RTX 4090">NVIDIA GeForce RTX 4090</MenuItem>
+                <MenuItem key="nv80" value="NVIDIA GeForce RTX 4080">NVIDIA GeForce RTX 4080</MenuItem>
+                <MenuItem key="amd63" value="AMD Radeon Pro W6300">AMD Radeon Pro W6300</MenuItem>
+                <MenuItem key="amd64" value="AMD Radeon Pro W6400">AMD Radeon Pro W6400</MenuItem>
+                <MenuItem key="ii" value="Intel Integrated Graphics">Intel Integrated Graphics</MenuItem>
+                <MenuItem key="i730" value="Intel UHD Graphics 730">Intel UHD Graphics 730</MenuItem>
+                <MenuItem key="i770" value="Intel UHD Graphics 770">Intel UHD Graphics 770</MenuItem>
+              </Select>
+            </FormControl>
+
             <Button
               variant="contained"
               color="primary"
@@ -457,69 +527,6 @@ function StoreOwner() {
             </Button>
             <Typography variant="body1" color="error" gutterBottom id="addComputerMessage"></Typography>
           </div>
-      {showInventory ? (
-        inventoryData.length > 0 ? (
-                <TableContainer component={Paper} style={{ marginTop: 20}}>
-                    <Table aria-label="inventory table">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Name</TableCell>
-                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Brand</TableCell>
-                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Memory</TableCell>
-                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Storage</TableCell>
-                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Processor</TableCell>
-                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Process Generation</TableCell>
-                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Graphics</TableCell>
-                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Price</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {inventoryData.map((computer, index) => (
-                                <TableRow key={index}>
-                                    <TableCell component="th" scope="row">
-                                        {computer.computer_name}
-                                    </TableCell>
-                                    <TableCell component="th" scope="row">
-                                        {computer.brand}
-                                    </TableCell>
-                                    <TableCell component="th" scope="row">
-                                        {computer.memory}
-                                    </TableCell>
-                                    <TableCell component="th" scope="row">
-                                        {computer.storage}
-                                    </TableCell>
-                                    <TableCell component="th" scope="row">
-                                        {computer.processor}
-                                    </TableCell>
-                                    <TableCell component="th" scope="row">
-                                        {computer.process_generation}
-                                    </TableCell>
-                                    <TableCell component="th" scope="row">
-                                        {computer.graphics}
-                                    </TableCell>
-                                    <TableCell align="center">${computer.price}</TableCell>
-                                </TableRow>
-                            ))}
-                            {/* Total Price Row */}
-                            <TableRow>
-                                <TableCell component="th" scope="row">
-                                    <strong>Total Inventory</strong>
-                                </TableCell>
-                                <TableCell align="right"><strong>${totalPrice.toFixed(2)}</strong></TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-        ) : (
-          <Typography variant="h6" align="center" color="textSecondary" style={{ marginTop: 50 }}>
-            No computers available.
-          </Typography>
-        )
-      ) : (
-        <Typography variant="h6" align="center" color="textSecondary" style={{ marginTop: 20 }}>
-          
-        </Typography>
-      )}
     </Container>
     </div>
 ); 

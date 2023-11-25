@@ -87,6 +87,7 @@ function Login() {
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+
   const initialFormState = {
     storeName: '',
     userID: '',
@@ -158,9 +159,9 @@ function Login() {
           <Typography variant="h4" align="center" gutterBottom style={{ color: 'black' }}>
             Computer Consignment Shop
           </Typography>
-          <Typography variant="h5" align="center" gutterBottom style={{ color: 'black' }}>
+          {/* <Typography variant="h5" align="center" gutterBottom style={{ color: 'black' }}>
             Login
-          </Typography>
+          </Typography> */}
           <form onSubmit={handleSubmit}>
             <TextField
               fullWidth
@@ -196,15 +197,15 @@ function Login() {
           {showCreateStoreForm && <CreateStoreForm />}
         </CardContent>
       </Card>
-      <Card>
+      {/* <Card>
         <CardContent>
         
-          <Typography variant="body1" align="center" style={styles.message}>
+          {<Typography variant="body1" align="center" style={styles.message}>
             Are you a customer? <button style={styles.linkButton} onClick={navigateToCustomer}>Click here</button>
-          </Typography>
+          </Typography>}
          
         </CardContent>
-      </Card>
+      </Card> */}
     </Container>
     
   );

@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
 import './customer.css';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -11,19 +10,35 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Checkbox from '@mui/material/Checkbox';
-import Radio from '@mui/material/Radio';
+import { useNavigate } from 'react-router-dom';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
+import Typography from '@mui/material/Typography';
+import laptopImage from './laptop.png';
 
 function Customer(){
-    const [buyComputer, setBuyComputer] = useState(null)
     const [computerList, setComputerList] = useState([])
 
+    const navigate = useNavigate();
+
     // brandList, memoryList ,storageList, processorList, processGenList, graphicsList
-    const [brandList, setBrandList] = useState([])
-    const [memoryList, setMemoryList] = useState([])
-    const [storageList, setStorageList] = useState([])
-    const [processorList, setProcessorList] = useState([])
-    const [processGenList, setProcessGenList] = useState([])
-    const [graphicsList, setGraphicsList] = useState([])
+    const priceFilter = ['$2001 or more', '$1501 - $2000', '$1001 - $1500', '$501 - $1000', '$500 or less']
+    const brandFilter = ['Dell','HP','Lenovo', 'Apple', 'Acer', 'Asus', 'Toshiba'];
+    const memoryFilter = ['32GB or more', '16GB', '12GB', '8GB', '4GB or less']
+    const storageFilter = ['2TB or more', '1TB', '512GB', '256GB or less']
+    const processorFilter = ['Intel', 'AMD']
+    const processGenFilter = ['13th Gen Intel','12th Gen Intel','11th Gen Intel','AMD Ryzen 7000 Series','AMD Ryzen 6000 Series']
+    const graphicsFilter = ['NVIDIA','AMD','Intel']
+
+    const [graphicsSelected, setGraphicsSelected] = useState([]);
+    const [generationSelected, setGenerationSelected] = useState([]);
+    const [processorSelected, setProcessorSelected] = useState([]);
+    const [storageSelected, setStorageSelected] = useState([]);
+    const [memorySelected, setMemorySelected] = useState([]);
+    const [brandSelected, setBrandSelected] = useState([]);
+    const [priceSelected, setPriceSelected] = useState([]);
+     const [filteredComputers, setFilteredComputers] = useState([]);
 
     // display all stores
     const [storeId, setStoreId] = useState([]);
@@ -35,28 +50,124 @@ function Customer(){
 
     const [successMessage, setSuccessMessage] = useState('');
 
-    // searchbar
-    const [searchInput, setSearchInput] = useState("");
-    const [selectedValue, setSelectedValue] = React.useState('');
+    const navigateToLogin = () => {
+        navigate('/login');
+    };
 
-    const searchBar = () => {}
+    const [customerLocation, setCustomerLocation] = useState(null);
+
+    //new change
+    const [showStores, setShowStores] = useState(false);
+    const [showCompare, setShowCompare] = useState(false);
+    const bottomRef = useRef(null);
+    
+    const handleCompareButtonClick = () => {
+        if(showCompare)
+        {
+            setShowCompare(false);
+        }
+        else{
+        setShowCompare(true);
+        }
+        setShowStores(false);
+        setTimeout(() => {
+            const element = document.querySelector(".store-display");
+            if (element) {
+                window.scrollTo({
+                    left: 0,
+                    top: element.offsetTop,
+                    behavior: "smooth"
+                });
+            }
+        }, 0);
+        if(compareList.length > 1){
+            setCompVisible(true);
+        }
+    };
+    async function showAllStores(){
+        if(showStores)
+        {
+            setShowStores(false);
+        }
+        else{
+            setShowStores(true);
+        }
+        // setShowStores(true);
+        setShowCompare(false);
+        setTimeout(() => {
+            const element = document.querySelector(".store-display");
+            if (element) {
+                window.scrollTo({
+                    left: 0,
+                    top: element.offsetTop,
+                    behavior: "smooth"
+                });
+            }
+        }, 0);
+        const requestBody = { body : JSON.stringify({
+            action: 'displayStoresToDelete'
+            })
+        };
+
+        const responseData = await fetchData(requestBody);
+
+        if (responseData.statusCode === 200){
+            const parsedList = JSON.parse(responseData.body);
+            // console.log('Retrieved stores: ', parsedList.storeList)
+            const temp = parsedList.storeList
+            const names = temp.map(item => item.store_name);
+            setStoreName(names)
+            const ids = temp.map(item=>item.store_id)
+            setStoreId(ids)
+        }else{
+            console.log('Failed');
+        }
+    }
 
     useEffect(() => {
         // Call the displayAllComputers function when the component mounts
         displayAllComputers();
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+              setCustomerLocation({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
+              });
+            },
+            (error) => {
+              console.error("Error getting location", error);
+            }
+          );
     }, []);
 
     useEffect(() => {
-        console.log('compare list ',compareList);
-    },[compareList]);
+        filterList();
+        //console.log('Filtered list: ', filteredComputers)
+    }, [graphicsSelected, generationSelected, processorSelected, storageSelected, memorySelected, brandSelected, priceSelected]);
 
-    const handleRadioChange = (event) =>{
-        setBuyComputer(event.target.value);
-    }
+    const updatedListWithShipping = useMemo(() => {
+        return customerLocation && filteredComputers.some(computer => computer.distance === null)
+            ? computeUpdatedListWithShipping(filteredComputers, customerLocation)
+            : filteredComputers;
+    }, [customerLocation, filteredComputers]);
 
+    useEffect(() => {
+        setFilteredComputers(updatedListWithShipping);
+    }, [updatedListWithShipping]);
+      
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Radius of the Earth in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c; // Distance in km
+      }
+      
     const handleCheckboxChange = (event, computerId) =>{
         const isChecked = event.target.checked;
-
         if (isChecked) {
             // Checkbox is checked, add computer ID to the compareList
             setCompareList((prevList) => [...prevList, computerId]);
@@ -65,13 +176,175 @@ function Customer(){
             setCompareList((prevList) => prevList.filter((id) => id !== computerId));
         }
     }
-
-    const handleCompareButtonClick = () => {
-        // Update the visibility state when the button is clicked
-        if(compareList.length > 1){
-            setCompVisible(true);
+    
+    const graphicsCheckboxChange = (event, graphics) => {
+        const isChecked = event.target.checked;
+        let gList = [];
+        if (graphics === 'AMD') {
+            gList = ['AMD Radeon Pro W6300', 'AMD Radeon Pro W6400'];
+        } else if (graphics === 'Intel') {
+            gList = ['Intel Integrated Graphics', 'Intel UHD Graphics 730', 'Intel UHD Graphics 770'];
+        } else {
+            gList = ['NVIDIA GeForce RTX 4090', 'NVIDIA GeForce RTX 4080'];
         }
-      };
+    
+        if (isChecked) {
+            setGraphicsSelected(prevList => [...new Set([...prevList, ...gList])]);
+        } else {
+            setGraphicsSelected(prevList => prevList.filter(g => !gList.includes(g)));
+        }
+    }
+    
+    const generationCheckboxChange = (event, generation) =>{
+        const isChecked = event.target.checked;
+        if (isChecked){
+            setGenerationSelected((prevList) => [...prevList, generation])
+        }else{
+            setGenerationSelected((prevList) => prevList.filter(g => g !== generation))
+        }
+    }
+
+    const processorCheckboxChange = (event, processor) =>{
+        const isChecked = event.target.checked;
+        let gList = [];
+        if (processor === 'Intel') {
+            gList = ['Intel Xion', 'Intel i9', 'Intel i7'];
+        } else {
+            gList = ['AMD Ryzen 9', 'AMD Ryzen 7'];
+        }
+        if (isChecked){
+            setProcessorSelected(prevList => [...new Set([...prevList, ...gList])])
+        }else{
+            setProcessorSelected((prevList => prevList.filter(g => !gList.includes(g))))
+        }
+    }
+
+    const storageCheckboxChange = (event, storage) =>{
+        const isChecked = event.target.checked;
+        let gList = [];
+        if (storage === '2TB or more'){
+            gList = ['2TB']
+        }else if (storage === '1TB'){
+            gList = ['1TB']
+        }else if(storage === '512GB'){
+            gList = ['512GB']
+        }else{
+            gList = ['256GB', '128GB']
+        }
+        if (isChecked){
+            setStorageSelected(prevList => [...new Set([...prevList, ...gList])])
+        }else{
+            setStorageSelected((prevList => prevList.filter(g => !gList.includes(g))))
+        }
+    }
+
+    const memoryCheckboxChange = (event, memory) =>{
+        const isChecked = event.target.checked;
+        let gList = [];
+        // '32GB or more', '16GB', '8GB', '4GB or less'
+        if (memory === '32GB or more'){
+            gList = ['32GB']
+        }else if (memory === '16GB'){
+            gList = ['16GB']
+        }else if (memory === '12GB'){
+            gList = ['12GB']
+        }else if(memory === '8GB'){
+            gList = ['8GB']
+        }else{
+            gList = ['4GB', '1GB']
+        }
+        if (isChecked){
+            setMemorySelected(prevList => [...new Set([...prevList, ...gList])])
+        }else{
+            setMemorySelected((prevList => prevList.filter(g => !gList.includes(g))))
+        }
+    }
+
+    const brandCheckboxChange = (event, brand) =>{
+        const isChecked = event.target.checked;
+        if (isChecked){
+            setBrandSelected((prevList) => [...prevList, brand])
+        }else{
+            setBrandSelected((prevList) => prevList.filter(g => g !== brand))
+        }
+    }
+
+    const parsePriceRange = (range) => {
+        if (range.includes("or less")) {
+            const max = Number(range.replace(/[$ or less]/g, ''));
+            return { min: 0, max };
+        } else if (range.includes("or more")) {
+            const min = Number(range.replace(/[$ or more]/g, ''));
+            return { min, max: Number.MAX_SAFE_INTEGER };
+        } else {
+            const [min, max] = range.split(' - ').map(price => {
+                return price.replace(/[$,]/g, '');
+            }).map(Number);
+    
+            return { min: min || 0, max: max || Number.MAX_SAFE_INTEGER };
+        }
+    };
+    
+
+    const priceCheckboxChange = (event, priceRange) =>{
+        const isChecked = event.target.checked;
+        if (isChecked){
+            setPriceSelected((prevList) => [...prevList, priceRange])
+        }else{
+            setPriceSelected((prevList) => prevList.filter(range => range !== priceRange))
+        }
+    }
+
+    const filterList = () => {
+        let filteredList = computerList;
+
+        if (graphicsSelected.length > 0) {
+            filteredList = filteredList.filter(computer => 
+                graphicsSelected.includes(computer.graphics)
+            );
+        }
+
+        if (generationSelected.length > 0) {
+            filteredList = filteredList.filter(computer => 
+                generationSelected.includes(computer.process_generation)
+            );
+        }
+
+        if(processorSelected.length > 0){
+            filteredList = filteredList.filter(computer =>
+                processorSelected.includes(computer.processor)
+            );
+        }
+
+        if(storageSelected.length > 0){
+            filteredList = filteredList.filter(computer =>
+                storageSelected.includes(computer.storage)
+            );
+        }
+
+        if(memorySelected.length > 0){
+            filteredList = filteredList.filter(computer =>
+                memorySelected.includes(computer.memory)
+            );
+        }
+
+        if(brandSelected.length > 0){
+            filteredList = filteredList.filter(computer =>
+                brandSelected.includes(computer.brand)
+            );
+        }
+
+        if (priceSelected.length > 0) {
+            filteredList = filteredList.filter(computer => {
+                return priceSelected.some(range => {
+                    const { min, max } = parsePriceRange(range);
+                    return computer.price >= min && computer.price <= max;
+                });
+            });
+        }
+
+        setFilteredComputers(filteredList);
+    }
 
     const fetchData = async (action) => {
         try {
@@ -98,26 +371,15 @@ function Customer(){
         );
     }
 
-    async function showAllStores(){
-        const requestBody = { body : JSON.stringify({
-            action: 'displayStoresToDelete'
-            })
-        };
-
-        const responseData = await fetchData(requestBody);
-
-        if (responseData.statusCode === 200){
-            const parsedList = JSON.parse(responseData.body);
-            // console.log('Retrieved stores: ', parsedList.storeList)
-            const temp = parsedList.storeList
-            const names = temp.map(item => item.store_name);
-            setStoreName(names)
-            const ids = temp.map(item=>item.store_id)
-            setStoreId(ids)
-        }else{
-            console.log('Failed');
-        }
+    const handleStoreClick = (storeId) => {
+        navigate(`/store-detail/${storeId}`);
     }
+
+    const sortedComputerList = filteredComputers.sort((a, b) => {
+        // Assuming distance is a number, sort by ascending order
+        // If distance can be undefined or null, you may need to add additional checks
+        return a.distance - b.distance;
+    });
 
     async function displayAllComputers(){
         const requestBody = { body : JSON.stringify({
@@ -131,82 +393,116 @@ function Customer(){
 
         if (responseData.statusCode === 200) {
             const parsedList = JSON.parse(responseData.body);
-            const tempList = parsedList.computerList
+            console.log(parsedList);
+            const tempList = parsedList.computerList.map(item => ({
+                ...item,
+                distance: null, // Initialize distance as null
+                shippingCost: null // Initialize shipping cost as null
+            }));
             setComputerList(tempList);
-
-            // brandList, memoryList ,storageList, processorList, processGenList, graphicsList
-            const brandArray = tempList.map(item => item.brand);
-            setBrandList([...new Set(brandArray)]);
-
-            const memArr = tempList.map(item=>item.memory);
-            setMemoryList([...new Set(memArr)]);
-
-            const storArr = tempList.map(item=>item.storage);
-            setStorageList([...new Set(storArr)]);
-
-            const procArr = tempList.map(item=>item.processor);
-            setProcessorList([...new Set(procArr)]);
-
-            const pgArr = tempList.map(item=>item.process_generation);
-            setProcessGenList([...new Set(pgArr)]);
-
-            const grArr = tempList.map(item=>item.graphics);
-            setGraphicsList([...new Set(grArr)]);
-
+            setFilteredComputers(tempList)
         } else {
+            console.log(responseData);  
             console.log('Failed');
         }
     }
 
-    async function buyComputerAction(){
-        if(buyComputer){
-            const requestBody = { body : JSON.stringify({
-                action:'buyComputer',
-                computer_id : buyComputer
+    function computeUpdatedListWithShipping(computers, customerLocation) {
+        return computers.map(computer => {
+            const distance = calculateDistance(
+                customerLocation.latitude,
+                customerLocation.longitude,
+                computer.latitude,
+                computer.longitude
+            );
+            const shippingCost = distance * 0.03;
+            return { ...computer, distance, shippingCost };
+        });
+    }
+
+    async function buyComputerAction(computerId) {
+        if(computerId) {
+            const requestBody = {
+                body: JSON.stringify({
+                    action: 'buyComputer',
+                    computer_id: computerId 
                 })
             }; 
-            console.log('Computer to be sold: ',requestBody.computer_id);
-
-            const responseData2 = await fetchData(requestBody);
-
-            // console.log('Response data for buy computer: ',responseData2);
-
-            if(responseData2.statusCode === 200){
-                console.log('Sold the computer', responseData2);
+            console.log('Computer to be sold: ', computerId); 
+    
+            const responseData = await fetchData(requestBody);
+            if(responseData.statusCode === 200){
+                console.log('Sold the computer', responseData);
                 setSuccessMessage('Computer has been shipped!');
                 await displayAllComputers();
-                setBuyComputer(null);
-            }else{
+            } else {
                 console.log('Failed to sell the computer');
                 setSuccessMessage('Failed to buy the computer.');
             }
         }
     }
+
     // computer_id, store_id, brand, price, memory, storage, processor, process_generation, graphics
-    return(
-        <><div className="flex-container">
-            <div className="flex-filter">
-                <p><b>Filters</b></p>
-                {brandList && brandList.length > 0 ? (
-                    <><table>
+    return (
+        <>
+        <Box textAlign='right'>
+            <Button variant='contained' sx={{ position: "fixed", top: 50, right: 50, zIndex: 2000 }} onClick={()=> showAllStores()}>
+            Show all stores
+            </Button>
+            <Button variant='contained' sx={{ position: "fixed", top: 50, right: 250, zIndex: 2000 }} onClick={navigateToLogin}>
+            Login
+            </Button>
+        </Box>
+        <div className="flex-container">
+        <div className="flex-filter">
+                    <>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {priceFilter.map((price, index) => (
+                                <tr key={index}>
+                                    <td><label>
+                                            <Checkbox
+                                                value={price}
+                                                name='checkPrice'
+                                                onChange={(event) =>
+                                                priceCheckboxChange(event, price)
+                                            }/>
+                                        </label>
+                                    {price}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    
+                    <table>
                         <thead>
                             <tr>
                                 <th>Brand</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {brandList.map((brand, index) => (
+                            {brandFilter.map((brand, index) => (
                                 <tr key={index}>
-                                    <td><label><input type='checkbox'
-                                        value={brand}
-                                        name='checkBrand'
-                                    ></input></label>
-                                    {brand}</td>
+                                    <td><label>
+                                            <Checkbox
+                                                value={brand}
+                                                name='checkBrand'
+                                                onChange={(event) =>
+                                                brandCheckboxChange(event, brand)
+                                            }/>
+                                        </label>
+                                    {brand}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
-
+                    
                     <table>
                         <thead>
                             <tr>
@@ -214,18 +510,22 @@ function Customer(){
                             </tr>
                         </thead>
                         <tbody>
-                            {memoryList.map((memory, index2) => (
+                            {memoryFilter.map((memory, index2) => (
                                 <tr key={index2}>
-                                    <td><label><input type='checkbox'
-                                        value={memory}
-                                        name='checkMemory'
-                                    ></input></label>
+                                    <td><label>
+                                        <Checkbox
+                                            value={memory}
+                                            name='checkMemory'
+                                            onChange={(event) =>
+                                            memoryCheckboxChange(event, memory)
+                                        }/>
+                                    </label>
                                     {memory}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table> 
-
+                    
                     <table>
                         <thead>
                             <tr>
@@ -233,18 +533,22 @@ function Customer(){
                             </tr>
                         </thead>
                         <tbody>
-                            {storageList.map((storage, index3) => (
+                            {storageFilter.map((storage, index3) => (
                                 <tr key={index3}>
-                                    <td><label><input type='checkbox'
-                                        value={storage}
-                                        name='checkStorage'
-                                    ></input></label>
+                                    <td><label>
+                                        <Checkbox
+                                            value={storage}
+                                            name='checkStorage'
+                                            onChange={(event) =>
+                                            storageCheckboxChange(event, storage)
+                                        }/>
+                                    </label>
                                     {storage}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table> 
-
+                    
                     <table>
                         <thead>
                             <tr>
@@ -252,18 +556,22 @@ function Customer(){
                             </tr>
                         </thead>
                         <tbody>
-                            {processorList.map((processor, index4) => (
+                            {processorFilter.map((processor, index4) => (
                                 <tr key={index4}>
-                                    <td><label><input type='checkbox'
-                                        value={processor}
-                                        name='checkProcessor'
-                                    ></input></label>
+                                    <td><label>
+                                        <Checkbox
+                                            value={processor}
+                                            name='checkProc'
+                                            onChange={(event) =>
+                                            processorCheckboxChange(event, processor)
+                                        }/>
+                                    </label>
                                     {processor}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table> 
-
+                    
                     <table>
                         <thead>
                             <tr>
@@ -271,18 +579,22 @@ function Customer(){
                             </tr>
                         </thead>
                         <tbody>
-                            {processGenList.map((process_generation, index5) => (
+                            {processGenFilter.map((process_generation, index5) => (
                                 <tr key={index5}>
-                                    <td><label><input type='checkbox'
+                                    <td><label>
+                                        <Checkbox
                                         value={process_generation}
-                                        name='checkProcessGen'
-                                    ></input></label>
+                                        name='checkGen'
+                                        onChange={(event) =>
+                                        generationCheckboxChange(event, process_generation)
+                                    }/>
+                                    </label>
                                     {process_generation}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table> 
-
+                   
                     <table>
                         <thead>
                             <tr>
@@ -290,142 +602,117 @@ function Customer(){
                             </tr>
                         </thead>
                         <tbody>
-                            {graphicsList.map((graphics, index6) => (
+                            {graphicsFilter.map((graphics, index6) => (
                                 <tr key={index6}>
-                                    <td><label><input type='checkbox'
-                                        value={graphics}
-                                        name='checkProcessGen'
-                                    ></input></label>
+                                    <td><label>
+                                    <Checkbox
+                                    value={graphics}
+                                    name='checkGraphics'
+                                    onChange={(event) =>
+                                        graphicsCheckboxChange(event, graphics)
+                                    }
+                                    /></label>
                                     {graphics}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table> 
                     </>
-                ) : (
-                    <p></p>
-                )}
-                <Button variant='contained' sx={{top: 25}}>Filter</Button>
             </div>
-            
-            <div className="flex-list">
-            <TextField id="search" label="location" variant="filled" fullWidth/>
-            <br></br>
-            <br></br>
-            {successMessage && <div>{successMessage}</div>}
-                {computerList && computerList.length > 0 ? (
-                    <><TableContainer component={Paper}>
-                    <Table aria-label="simple table">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell style={{ fontWeight: 'bold' }}>Compare</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Computer Name</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Store ID</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Brand</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Price</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Memory</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Storage</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Processor</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Processor Generation</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Graphics</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Shipping</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Buy</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {computerList.map((computer, index) => (
-                          <TableRow key={index}>
-                            <TableCell>
-                              <Checkbox
-                                onChange={(event) =>
-                                    handleCheckboxChange(event, computer.computer_id)
-                                  }
-                              />
-                            </TableCell>
-                            <TableCell>{computer.computer_name}</TableCell>
-                            <TableCell>{computer.store_id}</TableCell>
-                            <TableCell>{computer.brand}</TableCell>
-                            <TableCell>{computer.price}</TableCell>
-                            <TableCell>{computer.memory}</TableCell>
-                            <TableCell>{computer.storage}</TableCell>
-                            <TableCell>{computer.processor}</TableCell>
-                            <TableCell>{computer.process_generation}</TableCell>
-                            <TableCell>{computer.graphics}</TableCell>
-                            <TableCell>1.99</TableCell>
-                            <TableCell>
-                              <Radio
-                                checked={selectedValue === computer.computer_id}
-                                onChange={handleRadioChange}
-                                value={computer.computer_id}
-                                name="buyComputer"
-                              />
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                        <Button variant='contained' onClick={() => buyComputerAction()} 
-                        sx={{top: 25}}>Buy selected computer</Button>
-                        <Button variant='contained' sx={{top: 25, left: 25}} onClick={handleCompareButtonClick}>Compare selected computers</Button>
-                    </>
-                ) : (
-                    <p></p>
-                )}
-            </div>
-        </div>
-        <div>
-        <Box textAlign='right'>
-            <Button variant='contained' sx={{ position: "fixed", top: 50, right: 50, zIndex: 2000 }} onClick={()=> showAllStores()}>
-            Show all stores
-            </Button>
-        </Box>
-        </div>
-        <div style={{display: 'flex', justifyContent: 'right', alignItems: 'center'}}>
-        <div style={{ width: '70%' }}>
-        {storeId && storeId.length > 0 ? (
-            <>
-            <TableContainer component={Paper}>
-                <Table aria-label="simple table">
-                    <TableHead>
-                        <TableRow>
-                          <TableCell style={{ fontWeight: 'bold' }}>Store ID</TableCell>
-                          <TableCell style={{ fontWeight: 'bold' }}>Store Name</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {storeId.map((store_id, index)=>(
-                            <TableRow key={index}>
-                                <TableCell>{store_id}</TableCell>
-                                <TableCell>{storeName[index]}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            {/* <table>
-            <thead>
-                <tr>
-                    <th>Store ID</th>
-                    <th>Store Name</th>
-                </tr>
-            </thead>
-            <tbody>
-                {storeId.map((store_id, index) => (
-                    <tr key={index}>
-                        <td>{store_id}</td>
-                        <td>{storeName[index]}</td>
-                    </tr>
-                ))}
-            </tbody>
-        </table> */}</>
-        ):(
-            <p></p>
-        )}
 
-        {compVisible && compareList.length > 1 ? (
-            <>
-                <TableContainer component={Paper}>
+            <main className="flex-main">
+            <section className="flex-list">
+                
+                {successMessage && <div>{successMessage}</div>}
+                <div style={{ display: 'block', gap: '10px', justifyContent: 'center'  }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
+                {filteredComputers && filteredComputers.length > 0 ? (
+                    sortedComputerList.map((computer, index) => (
+                        <Card className="product-card" key={index}>
+                             <img src={laptopImage} alt="Computer" className="product-image" />
+                            <CardContent className="product-details">
+                                <Typography gutterBottom variant="h6" component="div">
+                                    {computer.computer_name}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Brand: {computer.brand}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Memory: {computer.memory}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Storage: {computer.storage}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Processor: {computer.processor}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Process Generation: {computer.process_generation}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Graphics: {computer.graphics}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Price: {computer.price}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Distance: {computer.distance ? `${computer.distance.toFixed(2)} miles` : 'N/A'}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Shipping Cost: {computer.shippingCost ? `$${computer.shippingCost.toFixed(2)}` : 'N/A'}
+                                </Typography>
+                            </CardContent>
+                            <CardActions disableSpacing>
+                                <Checkbox onChange={(event) => handleCheckboxChange(event, computer.computer_id)} />
+                                <Button variant="contained" className="btn-primary" size="small" onClick={() => buyComputerAction(computer.computer_id)}>Buy</Button>
+                                <Typography variant="h6" color="primary" sx={{ marginLeft: 'auto' }} className="product-price">
+                                    ${(computer.price + computer.shippingCost).toFixed(2)}
+                                </Typography>
+                            </CardActions>
+                        </Card>
+                    ))
+                ) : (
+                    <p>No computers to display</p>
+                )}
+        </div>
+
+                </div>                
+            </section>
+            </main>
+        </div>
+        <Button variant='contained' onClick={handleCompareButtonClick} sx={{ position: "fixed", top: 100, right: 50, zIndex: 2000 }}>Compare Selected Computers</Button>
+
+        <div className="store-display">
+            <div style={{ width: '100%' }}>
+                {showStores&& storeId && storeId.length > 0 ? (
+                    <TableContainer component={Paper}>
+                        <Table aria-label="simple table">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell style={{ fontWeight: 'bold' }}>Store ID</TableCell>
+                                    <TableCell style={{ fontWeight: 'bold' }}>Store Name</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {storeId.map((store_id, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>{store_id}</TableCell>
+                                        <TableCell>
+                                            <Button onClick={() => handleStoreClick(store_id)}>
+                                                {storeName[index]}
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                ) : (
+                    <p></p>
+                )}
+
+                {showCompare && compVisible && compareList.length > 1 ? (
+                    <TableContainer component={Paper}>
                     <Table aria-label="simple table">
                         <TableHead>
                             <TableRow>
@@ -443,6 +730,10 @@ function Customer(){
                             <TableRow>
                                 <TableCell style={{fontWeight: 'bold'}}>Price</TableCell>
                                 {compareList.map((compare, index) => renderFeatureCell(compare, index, 'price'))}
+                            </TableRow>
+                            <TableRow>
+                                <TableCell style={{fontWeight: 'bold'}}>Shipping Cost</TableCell>
+                                {compareList.map((compare, index) => renderFeatureCell(compare, index, 'shippingCost'))}
                             </TableRow>
                             <TableRow>
                                 <TableCell style={{fontWeight: 'bold'}}>Memory</TableCell>
@@ -467,17 +758,17 @@ function Customer(){
                         </TableBody>
                     </Table>
                 </TableContainer>
-            </>
-        ) : (
-            <p>No computers selected for comparison.</p>
-        )}
-
-
-
-
+                ) : (
+                    <p></p>
+                )}
+                
+            </div>
+            
         </div>
-        </div>
+        
+        
         </>
-    ) 
+        
+    );
 }
 export default Customer;
