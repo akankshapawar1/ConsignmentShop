@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-//import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, Button, TextField, Typography, Container } from '@mui/material';
 
@@ -153,6 +152,7 @@ function Login() {
   
 
   return (
+    
     <Container maxWidth="sm">
       <Card>
         <CardContent>
@@ -197,15 +197,6 @@ function Login() {
           {showCreateStoreForm && <CreateStoreForm />}
         </CardContent>
       </Card>
-      {/* <Card>
-        <CardContent>
-        
-          {<Typography variant="body1" align="center" style={styles.message}>
-            Are you a customer? <button style={styles.linkButton} onClick={navigateToCustomer}>Click here</button>
-          </Typography>}
-         
-        </CardContent>
-      </Card> */}
     </Container>
     
   );

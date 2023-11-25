@@ -24,6 +24,7 @@ function StoreOwner() {
     const [selectedProcessor, setSelectedProcessor] = useState('');
     const [selectedProcessGen, setSelectedProcessGen] = useState('');
     const [selectedGraphics, setSelectedGraphics] = useState('');
+    const [storeProfit, setStoreProfit] = useState(0)
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -52,7 +53,11 @@ function StoreOwner() {
       }
 
       getAllComputers(username)
-    },[]);
+      getStoreProfit(username)
+
+      console.log("storeProfit: ", storeProfit)
+
+    },[storeProfit]);
 
     const fetchData = async (action) => {
       try {
@@ -68,8 +73,29 @@ function StoreOwner() {
       }
     };
 
+    async function getStoreProfit(username) {
+      const requestBody = { body : JSON.stringify({
+        action: "getStoreProfit",
+        user_id: username,
+        })
+      };
+
+      const responseData = await fetchData(requestBody)
+      const parsedResponseData = JSON.parse(responseData)
+
+      if (parsedResponseData.statusCode === 200) {
+        const parsedBody = JSON.parse(parsedResponseData.body)
+
+        setStoreProfit(parsedBody.storeProfit)
+      }
+      else {
+        console.error("Unable to fetch store profit")
+      }
+    }
+
     async function getAllComputers(ownerId) {
       setShowAllComputers(true)
+      document.getElementById('addComputerMessage').innerText = '';
 
       const requestBody = { body : JSON.stringify({
         action: "getAllComputers",
@@ -78,8 +104,6 @@ function StoreOwner() {
       };
 
       const responseData = await fetchData(requestBody);
-
-      console.log('Response data from Generate inventory: ',responseData);
       
       if (responseData.statusCode === 200) {
           console.log('Computer fetched:', responseData);
@@ -132,7 +156,6 @@ function StoreOwner() {
 
         if (responseData.statusCode === 200) {
             document.getElementById('addComputerMessage').innerText = 'Computer added successfully!';
-            console.log('Computer added: ', responseData);
             document.getElementById('name').value = '';
             document.getElementById('price').value = ''; 
             setSelectedBrand('');
@@ -172,8 +195,6 @@ function StoreOwner() {
       const responseData = await fetchData(requestBody);
       setShowAllComputers(true)
 
-      console.log("responseData: ", responseData)
-
       if (responseData.statusCode === 200) {
         await getAllComputers(username)
       }
@@ -189,11 +210,17 @@ function StoreOwner() {
         })
       }
 
-      const responseData = await fetchData(requestBody);
+      if (storeProfit >= 25) {
+        const responseData = await fetchData(requestBody);
 
-      if (responseData.statusCode === 200) {
-        await getAllComputers(username)
+        if (responseData.statusCode === 200) {
+          await getAllComputers(username)
+        }
       }
+      else {
+        console.log("Insufficient balance")
+      }
+      
     }
 
     async function logout() {
@@ -253,7 +280,7 @@ function StoreOwner() {
           
           {showAllComputers ? (
             computers.length > 0 ? (
-                <TableContainer component={Paper} style={{ marginTop: 20}}>
+                <TableContainer component={Paper} style={{ marginTop: 20, width: '100%'}}>
                     <Table>
                         <TableHead>
                         <TableRow>
@@ -261,6 +288,10 @@ function StoreOwner() {
                                     <strong>Total Inventory</strong>
                                 </TableCell>
                                 <TableCell align="right"><strong>${totalPrice.toFixed(2)}</strong></TableCell>
+                                <TableCell component="th" scope="row">
+                                    <strong>Store Profit</strong>
+                                </TableCell>
+                                <TableCell align="right"><strong>${storeProfit.toFixed(2)}</strong></TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Name</TableCell>
@@ -270,6 +301,7 @@ function StoreOwner() {
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Processor</TableCell>
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Process Generation</TableCell>
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Graphics</TableCell>
+                                <TableCell align="center" style={{ fontWeight: 'bold' }}>Sold</TableCell>
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Price</TableCell>
                                 <TableCell align="center" style={{ fontWeight: 'bold' }}>Delete</TableCell>
                             </TableRow>
@@ -298,6 +330,9 @@ function StoreOwner() {
                                   <TableCell component="th" scope="row">
                                       {computer.graphics}
                                   </TableCell>
+                                  <TableCell component="th" scope="row">
+                                    {computer.is_available === 1 ? 'No' : 'Yes'}
+                                  </TableCell>
                                   <TableCell align="center">
                                   {editingComputerId === computer.computer_id ? (
                                     <>
@@ -320,17 +355,25 @@ function StoreOwner() {
                                       </form>
                                     </>
                                   ) : (
-                                    <>
-                                      {computer.price}&nbsp;&nbsp;
-                                      <Tooltip title="Edit Price" arrow>
-                                        <Button variant="outlined" color="primary" startIcon={<AttachMoneyIcon />} onClick={() => editPrice(computer.computer_id)} />
-                                      </Tooltip>
-                                    </>
+                                    <TableCell>
+                                      <td>{computer.price}&nbsp;&nbsp;</td>
+                                    <td>
+                                      {computer.is_available === 1 ? (
+                                        <Tooltip title="Edit Price" arrow>
+                                          <Button variant="outlined" color="primary" startIcon={<AttachMoneyIcon />} onClick={() => editPrice(computer.computer_id)} />
+                                        </Tooltip>
+                                      ) : (
+                                        <Tooltip title="Computer not available" arrow>
+                                          <Button variant="outlined" color="primary" startIcon={<AttachMoneyIcon />} disabled />
+                                        </Tooltip>
+                                      )}
+                                    </td>
+                                    </TableCell>
                                   )}
                                   </TableCell>
                                   <TableCell>
                                   <Tooltip title="Delete Computer" arrow>
-                                    <Button variant="outlined" color="secondary" startIcon={<DeleteIcon />} onClick={() => deleteComputer(computer.computer_id)} />
+                                    <Button variant="outlined" color="secondary" startIcon={<DeleteIcon />} onClick={() => deleteComputer(computer.computer_id)} disabled={computer.is_available === 0} />
                                     </Tooltip>
                                   </TableCell>
                               </TableRow>
