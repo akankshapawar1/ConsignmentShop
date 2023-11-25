@@ -620,16 +620,14 @@ function Customer(){
                     </>
             </div>
 
-            <main className="flex-main">
-            <section className="flex-list">
-                
+            <div className="flex-list">
                 {successMessage && <div>{successMessage}</div>}
                 <div style={{ display: 'block', gap: '10px', justifyContent: 'center'  }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
                 {filteredComputers && filteredComputers.length > 0 ? (
                     sortedComputerList.map((computer, index) => (
                         <Card className="product-card" key={index}>
-                             <img src={laptopImage} alt="Computer" className="product-image" />
+                            <img src={laptopImage} alt="Computer" className="product-image" />
+                            <div style={{ display: 'flex', flexDirection: 'column', width: '50%', padding: '10px' }}>
                             <CardContent className="product-details">
                                 <Typography gutterBottom variant="h6" component="div">
                                     {computer.computer_name}
@@ -669,16 +667,14 @@ function Customer(){
                                     ${(computer.price + computer.shippingCost).toFixed(2)}
                                 </Typography>
                             </CardActions>
+                            </div>
                         </Card>
                     ))
                 ) : (
                     <p>No computers to display</p>
                 )}
         </div>
-
-                </div>                
-            </section>
-            </main>
+        </div>
         </div>
         <Button variant='contained' onClick={handleCompareButtonClick} sx={{ position: "fixed", top: 100, right: 50, zIndex: 2000 }}>Compare Selected Computers</Button>
 
