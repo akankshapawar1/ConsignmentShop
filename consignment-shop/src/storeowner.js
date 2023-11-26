@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Typography, Button, Container, TextField, Tooltip, Input } from '@mui/material';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
@@ -219,7 +218,7 @@ function StoreOwner() {
         }
       }
       else {
-        console.log("Insufficient balance")
+        window.alert('Insufficient balance')
       }
       
     }
@@ -374,7 +373,7 @@ function StoreOwner() {
                                   </TableCell>
                                   <TableCell>
                                   <Tooltip title="Delete Computer" arrow>
-                                    <Button variant="outlined" color="secondary" startIcon={<DeleteIcon />} onClick={() => deleteComputer(computer.computer_id)} />
+                                    <Button variant="outlined" color="secondary" startIcon={<DeleteIcon />} onClick={() => deleteComputer(computer.computer_id)} disabled={computer.is_available === 0} />
                                     </Tooltip>
                                   </TableCell>
                               </TableRow>

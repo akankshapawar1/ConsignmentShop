@@ -1,16 +1,7 @@
 import Customer from "./customer/customer";
+import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Checkbox } from '@material-ui/core'
 import React, { useState, useEffect } from 'react';
-import { resolvePath, useParams } from 'react-router-dom';
-import Button from '@mui/material/Button';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import Checkbox from '@mui/material/Checkbox';
-import { Tab } from "@mui/material";
+import { useParams } from 'react-router-dom';
 function StoreDetail(){
     const { storeId } = useParams();
     console.log(storeId); // Assuming you're passing the store ID in the URL

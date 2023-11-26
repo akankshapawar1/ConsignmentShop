@@ -1,27 +1,28 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { AppBar, Toolbar, makeStyles, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Checkbox, Card, CardContent, CardActions, Typography, Input } from '@material-ui/core';
+
 import Button from '@mui/material/Button';
-import Box from '@mui/material/Box';
 import './customer.css';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import Checkbox from '@mui/material/Checkbox';
 import { useNavigate } from 'react-router-dom';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CardActions from '@mui/material/CardActions';
-import Typography from '@mui/material/Typography';
 import laptopImage from './laptop.png';
 
+const useStyles = makeStyles((theme) => ({
+    appBar: {
+      backgroundColor: theme.palette.primary.main, // Customize the background color
+    },
+    title: {
+      flexGrow: 1,
+    },
+    button: {
+      marginLeft: theme.spacing(2),
+    },
+  }));
+
 function Customer(){
-    const [computerList, setComputerList] = useState([])
-
     const navigate = useNavigate();
+    const classes = useStyles();
 
+    const [computerList, setComputerList] = useState([])
     // brandList, memoryList ,storageList, processorList, processGenList, graphicsList
     const priceFilter = ['$2001 or more', '$1501 - $2000', '$1001 - $1500', '$501 - $1000', '$500 or less']
     const brandFilter = ['Dell','HP','Lenovo', 'Apple', 'Acer', 'Asus', 'Toshiba'];
@@ -39,6 +40,9 @@ function Customer(){
     const [brandSelected, setBrandSelected] = useState([]);
     const [priceSelected, setPriceSelected] = useState([]);
      const [filteredComputers, setFilteredComputers] = useState([]);
+     const [showAlert, setShowAlert] = useState(false);
+     const [latitude, setLatitude] = useState(null)
+     const [longitude, setLongitude] = useState(null)
 
     // display all stores
     const [storeId, setStoreId] = useState([]);
@@ -49,6 +53,8 @@ function Customer(){
     const [compVisible, setCompVisible] = useState(false);
 
     const [successMessage, setSuccessMessage] = useState('');
+    const [showStores, setShowStores] = useState(false);
+    const [showCompare, setShowCompare] = useState(false);
 
     const navigateToLogin = () => {
         navigate('/login');
@@ -56,11 +62,61 @@ function Customer(){
 
     const [customerLocation, setCustomerLocation] = useState(null);
 
-    //new change
-    const [showStores, setShowStores] = useState(false);
-    const [showCompare, setShowCompare] = useState(false);
-    const bottomRef = useRef(null);
-    
+    useEffect(() => {
+        displayAllComputers();
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setCustomerLocation({
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    });
+                },
+                (error) => console.error("Error getting location", error)
+            );
+        }
+    }, [customerLocation]);
+
+    useEffect(() => {
+        if (showAlert) {
+            alert(successMessage);
+            setShowAlert(false);
+        }
+    }, [showAlert, successMessage]);
+
+    useEffect(() => {
+        filterList();
+    }, [graphicsSelected, generationSelected, processorSelected, storageSelected, memorySelected, brandSelected, priceSelected]);
+
+    const updatedListWithShipping = useMemo(() => {
+        return customerLocation && filteredComputers.some(computer => computer.distance === null)
+            ? computeUpdatedListWithShipping(filteredComputers, customerLocation)
+            : filteredComputers;
+    }, [customerLocation, filteredComputers]);
+
+    useEffect(() => {
+        setFilteredComputers(updatedListWithShipping);
+    }, [updatedListWithShipping]);
+
+    const handleCheckboxChange = (event, computerId) =>{
+        const isChecked = event.target.checked;
+        if (isChecked) {
+            setCompareList((prevList) => [...prevList, computerId]);
+        } else {
+            // Checkbox is unchecked, remove computer ID from the compareList
+            setCompareList((prevList) => prevList.filter((id) => id !== computerId));
+        }
+    }
+
+    const handleLocationSubmit = (e) => {
+        e.preventDefault();
+        setCustomerLocation({
+            latitude: latitude,
+            longitude: longitude
+        });
+    };
+
     const handleCompareButtonClick = () => {
         if(showCompare)
         {
@@ -84,76 +140,6 @@ function Customer(){
             setCompVisible(true);
         }
     };
-    async function showAllStores(){
-        if(showStores)
-        {
-            setShowStores(false);
-        }
-        else{
-            setShowStores(true);
-        }
-        // setShowStores(true);
-        setShowCompare(false);
-        setTimeout(() => {
-            const element = document.querySelector(".store-display");
-            if (element) {
-                window.scrollTo({
-                    left: 0,
-                    top: element.offsetTop,
-                    behavior: "smooth"
-                });
-            }
-        }, 0);
-        const requestBody = { body : JSON.stringify({
-            action: 'displayStoresToDelete'
-            })
-        };
-
-        const responseData = await fetchData(requestBody);
-
-        if (responseData.statusCode === 200){
-            const parsedList = JSON.parse(responseData.body);
-            // console.log('Retrieved stores: ', parsedList.storeList)
-            const temp = parsedList.storeList
-            const names = temp.map(item => item.store_name);
-            setStoreName(names)
-            const ids = temp.map(item=>item.store_id)
-            setStoreId(ids)
-        }else{
-            console.log('Failed');
-        }
-    }
-
-    useEffect(() => {
-        // Call the displayAllComputers function when the component mounts
-        displayAllComputers();
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-              setCustomerLocation({
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude
-              });
-            },
-            (error) => {
-              console.error("Error getting location", error);
-            }
-          );
-    }, []);
-
-    useEffect(() => {
-        filterList();
-        //console.log('Filtered list: ', filteredComputers)
-    }, [graphicsSelected, generationSelected, processorSelected, storageSelected, memorySelected, brandSelected, priceSelected]);
-
-    const updatedListWithShipping = useMemo(() => {
-        return customerLocation && filteredComputers.some(computer => computer.distance === null)
-            ? computeUpdatedListWithShipping(filteredComputers, customerLocation)
-            : filteredComputers;
-    }, [customerLocation, filteredComputers]);
-
-    useEffect(() => {
-        setFilteredComputers(updatedListWithShipping);
-    }, [updatedListWithShipping]);
       
     function calculateDistance(lat1, lon1, lat2, lon2) {
         const R = 6371; // Radius of the Earth in km
@@ -164,19 +150,8 @@ function Customer(){
                   Math.sin(dLon/2) * Math.sin(dLon/2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         return R * c; // Distance in km
-      }
-      
-    const handleCheckboxChange = (event, computerId) =>{
-        const isChecked = event.target.checked;
-        if (isChecked) {
-            // Checkbox is checked, add computer ID to the compareList
-            setCompareList((prevList) => [...prevList, computerId]);
-        } else {
-            // Checkbox is unchecked, remove computer ID from the compareList
-            setCompareList((prevList) => prevList.filter((id) => id !== computerId));
-        }
     }
-    
+
     const graphicsCheckboxChange = (event, graphics) => {
         const isChecked = event.target.checked;
         let gList = [];
@@ -361,7 +336,7 @@ function Customer(){
     };
 
     function renderFeatureCell(compare, index, feature) {
-        const matchingComp = computerList.find(
+        const matchingComp = filteredComputers.find(
             (computer) => computer.computer_id === compare
         );
         return (
@@ -375,9 +350,45 @@ function Customer(){
         navigate(`/store-detail/${storeId}`);
     }
 
+    async function showAllStores(){
+        if(showStores)
+        {
+            setShowStores(false);
+        }
+        else{
+            setShowStores(true);
+        }
+        setShowCompare(false);
+        setTimeout(() => {
+            const element = document.querySelector(".store-display");
+            if (element) {
+                window.scrollTo({
+                    left: 0,
+                    top: element.offsetTop,
+                    behavior: "smooth"
+                });
+            }
+        }, 250);
+        const requestBody = { body : JSON.stringify({
+            action: 'displayStoresToDelete'
+            })
+        };
+
+        const responseData = await fetchData(requestBody);
+
+        if (responseData.statusCode === 200){
+            const parsedList = JSON.parse(responseData.body);
+            const temp = parsedList.storeList
+            const names = temp.map(item => item.store_name);
+            setStoreName(names)
+            const ids = temp.map(item=>item.store_id)
+            setStoreId(ids)
+        }else{
+            console.log('Failed');
+        }
+    }
+
     const sortedComputerList = filteredComputers.sort((a, b) => {
-        // Assuming distance is a number, sort by ascending order
-        // If distance can be undefined or null, you may need to add additional checks
         return a.distance - b.distance;
     });
 
@@ -389,20 +400,16 @@ function Customer(){
 
         const responseData = await fetchData(requestBody);
 
-        // console.log('Response data computer list: ',responseData);
-
         if (responseData.statusCode === 200) {
             const parsedList = JSON.parse(responseData.body);
-            console.log(parsedList);
             const tempList = parsedList.computerList.map(item => ({
                 ...item,
-                distance: null, // Initialize distance as null
-                shippingCost: null // Initialize shipping cost as null
+                distance: null, 
+                shippingCost: null 
             }));
             setComputerList(tempList);
             setFilteredComputers(tempList)
         } else {
-            console.log(responseData);  
             console.log('Failed');
         }
     }
@@ -416,7 +423,8 @@ function Customer(){
                 computer.longitude
             );
             const shippingCost = distance * 0.03;
-            return { ...computer, distance, shippingCost };
+            const shippingCost2 = shippingCost.toFixed(2)
+            return { ...computer, distance, shippingCost2 };
         });
     }
 
@@ -434,6 +442,7 @@ function Customer(){
             if(responseData.statusCode === 200){
                 console.log('Sold the computer', responseData);
                 setSuccessMessage('Computer has been shipped!');
+                setShowAlert(true);
                 await displayAllComputers();
             } else {
                 console.log('Failed to sell the computer');
@@ -445,16 +454,23 @@ function Customer(){
     // computer_id, store_id, brand, price, memory, storage, processor, process_generation, graphics
     return (
         <>
-        <Box textAlign='right'>
-            <Button variant='contained' sx={{ position: "fixed", top: 50, right: 50, zIndex: 2000 }} onClick={()=> showAllStores()}>
-            Show all stores
-            </Button>
-            <Button variant='contained' sx={{ position: "fixed", top: 50, right: 250, zIndex: 2000 }} onClick={navigateToLogin}>
-            Login
-            </Button>
-        </Box>
+
+        <AppBar position="static" className={classes.appBar}>
+            <Toolbar>
+                <Typography variant="h6" className={classes.title}>
+                Lhotse Computer Consignment Shop
+                </Typography>
+                <Button color="inherit" className={classes.button} onClick={navigateToLogin}>
+                Login
+                </Button>
+                <Button color="inherit" className={classes.button} onClick={()=> showAllStores()}>
+                Show all stores
+                </Button>
+            </Toolbar>
+            </AppBar>
         <div className="flex-container">
         <div className="flex-filter">
+
                     <>
                     <table>
                         <thead>
@@ -620,65 +636,82 @@ function Customer(){
                     </>
             </div>
 
-            <main className="flex-main">
-            <section className="flex-list">
-                
-                {successMessage && <div>{successMessage}</div>}
-                <div style={{ display: 'block', gap: '10px', justifyContent: 'center'  }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
+            <div className="flex-list">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+                <form onSubmit={handleLocationSubmit}>
+                <Input
+                    label="Latitude"
+                    placeholder='Latitude'
+                    type="text"
+                    onChange={(e) => setLatitude(e.target.value)}
+                    fullWidth
+                    margin="normal"
+                    required
+                />
+                <Input
+                    label="Longitude"
+                    placeholder='Longitude'
+                    type="text"
+                    onChange={(e) => setLongitude(e.target.value)}
+                    fullWidth
+                    margin="normal"
+                    required
+                />
+                    <Button type='submit'>Set location</Button>
+                </form>
+
                 {filteredComputers && filteredComputers.length > 0 ? (
                     sortedComputerList.map((computer, index) => (
-                        <Card className="product-card" key={index}>
-                             <img src={laptopImage} alt="Computer" className="product-image" />
-                            <CardContent className="product-details">
-                                <Typography gutterBottom variant="h6" component="div">
-                                    {computer.computer_name}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Brand: {computer.brand}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Memory: {computer.memory}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Storage: {computer.storage}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Processor: {computer.processor}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Process Generation: {computer.process_generation}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Graphics: {computer.graphics}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Price: {computer.price}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Distance: {computer.distance ? `${computer.distance.toFixed(2)} miles` : 'N/A'}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Shipping Cost: {computer.shippingCost ? `$${computer.shippingCost.toFixed(2)}` : 'N/A'}
-                                </Typography>
-                            </CardContent>
-                            <CardActions disableSpacing>
-                                <Checkbox onChange={(event) => handleCheckboxChange(event, computer.computer_id)} />
-                                <Button variant="contained" className="btn-primary" size="small" onClick={() => buyComputerAction(computer.computer_id)}>Buy</Button>
-                                <Typography variant="h6" color="primary" sx={{ marginLeft: 'auto' }} className="product-price">
-                                    ${(computer.price + computer.shippingCost).toFixed(2)}
-                                </Typography>
-                            </CardActions>
+                        <Card className="product-card" key={index} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', maxWidth: '1200px', overflow: 'hidden' }}>
+                            <img src={laptopImage} alt="Computer" style={{ width: '50%', objectFit: 'cover' }} />
+                            <div style={{ display: 'flex', flexDirection: 'column', width: '50%', padding: '20px' }}>
+                                <CardContent className="product-details">
+                                    <Typography gutterBottom variant="h6" component="div">
+                                        {computer.computer_name}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Brand: {computer.brand}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Memory: {computer.memory}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Storage: {computer.storage}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Processor: {computer.processor}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Process Generation: {computer.process_generation}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Graphics: {computer.graphics}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Price: {computer.price}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Distance: {computer.distance ? `${computer.distance.toFixed(2)} miles` : 'N/A'}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Shipping Cost: {computer.shippingCost2 ? `$${computer.shippingCost2}` : 'N/A'}
+                                    </Typography>
+                                </CardContent>
+                                <CardActions disableSpacing style={{ marginTop: 'auto' }}>
+                                    <Checkbox onChange={(event) => handleCheckboxChange(event, computer.computer_id)} />
+                                    <Button size="small" variant='contained' onClick={() => buyComputerAction(computer.computer_id)}>Buy</Button>
+                                    <Typography variant="h6" color="primary" sx={{ marginLeft: 'auto' }} className="product-price">
+                                        ${computer.price}
+                                    </Typography>
+                                </CardActions>
+                            </div>
                         </Card>
                     ))
                 ) : (
                     <p>No computers to display</p>
                 )}
+                </div>
         </div>
-
-                </div>                
-            </section>
-            </main>
         </div>
         <Button variant='contained' onClick={handleCompareButtonClick} sx={{ position: "fixed", top: 100, right: 50, zIndex: 2000 }}>Compare Selected Computers</Button>
 
@@ -717,9 +750,7 @@ function Customer(){
                         <TableHead>
                             <TableRow>
                                 <TableCell style={{fontWeight: 'bold'}}>Features</TableCell>
-                                {compareList.map((compare, index) => (
-                                    <TableCell key={index} style={{fontWeight: 'bold'}}>{compare}</TableCell>
-                                ))}
+                                {compareList.map((compare, index) => renderFeatureCell(compare, index, 'computer_name'))}
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -733,7 +764,7 @@ function Customer(){
                             </TableRow>
                             <TableRow>
                                 <TableCell style={{fontWeight: 'bold'}}>Shipping Cost</TableCell>
-                                {compareList.map((compare, index) => renderFeatureCell(compare, index, 'shippingCost'))}
+                                {compareList.map((compare, index) => renderFeatureCell(compare, index, 'shippingCost2'))}
                             </TableRow>
                             <TableRow>
                                 <TableCell style={{fontWeight: 'bold'}}>Memory</TableCell>
@@ -761,14 +792,9 @@ function Customer(){
                 ) : (
                     <p></p>
                 )}
-                
             </div>
-            
-        </div>
-        
-        
+        </div>    
         </>
-        
     );
 }
 export default Customer;
