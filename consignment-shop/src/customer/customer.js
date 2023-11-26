@@ -51,6 +51,7 @@ function Customer(){
     const [brandSelected, setBrandSelected] = useState([]);
     const [priceSelected, setPriceSelected] = useState([]);
      const [filteredComputers, setFilteredComputers] = useState([]);
+     const [showAlert, setShowAlert] = useState(false);
 
     // display all stores
     const [storeId, setStoreId] = useState([]);
@@ -85,6 +86,13 @@ function Customer(){
             );
         }
     }, []);
+
+    useEffect(() => {
+        if (showAlert) {
+            alert(successMessage);
+            setShowAlert(false);
+        }
+    }, [showAlert, successMessage]);
 
     useEffect(() => {
         filterList();
@@ -416,7 +424,8 @@ function Customer(){
                 computer.longitude
             );
             const shippingCost = distance * 0.03;
-            return { ...computer, distance, shippingCost };
+            const shippingCost2 = shippingCost.toFixed(2)
+            return { ...computer, distance, shippingCost2 };
         });
     }
 
@@ -434,6 +443,7 @@ function Customer(){
             if(responseData.statusCode === 200){
                 console.log('Sold the computer', responseData);
                 setSuccessMessage('Computer has been shipped!');
+                setShowAlert(true);
                 await displayAllComputers();
             } else {
                 console.log('Failed to sell the computer');
@@ -627,8 +637,8 @@ function Customer(){
             </div>
 
             <div className="flex-list">
-                {successMessage && <div>{successMessage}</div>}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+                {/* {successMessage && <div style={{ color: 'red', fontWeight: 'bold' }}>{successMessage}</div>} */}
                 {filteredComputers && filteredComputers.length > 0 ? (
                     sortedComputerList.map((computer, index) => (
                         <Card className="product-card" key={index} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', maxWidth: '1200px', overflow: 'hidden' }}>
@@ -663,7 +673,7 @@ function Customer(){
                                         Distance: {computer.distance ? `${computer.distance.toFixed(2)} miles` : 'N/A'}
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                        Shipping Cost: {computer.shippingCost ? `$${computer.shippingCost.toFixed(2)}` : 'N/A'}
+                                        Shipping Cost: {computer.shippingCost2 ? `$${computer.shippingCost2}` : 'N/A'}
                                     </Typography>
                                 </CardContent>
                                 <CardActions disableSpacing style={{ marginTop: 'auto' }}>
@@ -733,7 +743,7 @@ function Customer(){
                             </TableRow>
                             <TableRow>
                                 <TableCell style={{fontWeight: 'bold'}}>Shipping Cost</TableCell>
-                                {compareList.map((compare, index) => renderFeatureCell(compare, index, 'shippingCost'))}
+                                {compareList.map((compare, index) => renderFeatureCell(compare, index, 'shippingCost2'))}
                             </TableRow>
                             <TableRow>
                                 <TableCell style={{fontWeight: 'bold'}}>Memory</TableCell>
