@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AppBar, Toolbar, makeStyles } from '@material-ui/core';
 import Button from '@mui/material/Button';
-import Box from '@mui/material/Box';
 import './customer.css';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
