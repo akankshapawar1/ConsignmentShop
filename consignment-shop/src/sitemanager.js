@@ -9,11 +9,6 @@ function SiteManager(){
     const [totalSum, setTotalSum] = useState(0);
     const [totalProfit, setTotalProfit] = useState(0);
     const [showInventory, setShowInventory] = useState(false);
-    const [showTotalInventory, setShowTotalInventory] = useState(false);
-    const [TotalBalance, setTotalBalance] = useState(false);
-    const [showTotalBalance, setShowTotalBalance] = useState(false);
-    const [StoreProfit, setStoreProfit] = useState([]);
-    const [showStoreProfit, setShowStoreProfit] = useState(false);
     const [storeBalance, setStoreBalance] = useState([]);
     const [showStoreBalance, setShowStoreBalance] = useState(false);
     const [showDeleteComp,setShowDeleteComp] = useState(false);
@@ -45,7 +40,6 @@ function SiteManager(){
             clearTimeout(deleteSuccessTimeout);
         }
         fetchTotalProfit();
-        fetchTotalBalance();
         fetchTotalInventory();
     }, []);
 
@@ -59,19 +53,9 @@ function SiteManager(){
     }
 
     async function toggleDisplayStoreInventory() {
-        if(showTotalInventory)
-        {
-            setShowTotalInventory(false);
-        }
-        if(showTotalBalance){
-            setShowTotalBalance(false);
-        }
         if(showInventory)
         {
             setShowInventory(false);
-        }
-        if(showStoreProfit){
-            setShowStoreProfit(false);
         }
         if(showStoreBalance)
         {
@@ -79,75 +63,15 @@ function SiteManager(){
         }
         setShowInventory(!showInventory);
 
-    if (!showInventory) { // Load data only if we are about to show the inventory
+    if (!showInventory) {
         await displayStoreInventory();
     }
     }
-
-    /*
-
-    async function toggleDisplayTotalInventory() {
-        if(showInventory)
-        {
-            setShowInventory(false);
-        }
-        if(showStoreBalance)
-        {
-            setShowStoreBalance(false);
-        }
-        if(showTotalBalance)
-        {
-            setShowTotalBalance(false);
-        }
-        if(showTotalInventory)
-        {
-            setShowTotalInventory(false);
-        }
-        else{
-            setShowTotalInventory(true);
-            await displayTotalInventory();
-
-        }
-    }
-
-    async function toggleDisplayTotalBalance() {
-        if(showInventory)
-        {
-            setShowInventory(false);
-        }
-        if(showTotalInventory)
-        {
-            setShowTotalInventory(false);
-        }
-        if(showStoreBalance)
-        {
-            setShowStoreBalance(false);
-        }
-        if(showTotalBalance){
-            setShowTotalBalance(false);
-        }
-        else{
-            setShowTotalBalance(true);
-            await displayTotalBalance();
-        }
-    }
-
-    */
 
     async function toggleDisplayStoreBalance() {
         if(showInventory)
         {
             setShowInventory(false);
-        }
-        if(showTotalInventory)
-        {
-            setShowTotalInventory(false);
-        }
-        if(showTotalBalance){
-            setShowTotalBalance(false);
-        }
-        if(showStoreProfit){
-            setShowStoreProfit(false);
         }
         if(showStoreBalance){
             setShowStoreBalance(false);
@@ -155,31 +79,6 @@ function SiteManager(){
         else{
             setShowStoreBalance(true);
             await displayStoreBalance();
-        }
-    }
-
-
-    async function toggleDisplayStoreProfit() {
-        if(showInventory)
-        {
-            setShowInventory(false);
-        }
-        if(showTotalInventory)
-        {
-            setShowTotalInventory(false);
-        }
-        if(showTotalBalance){
-            setShowTotalBalance(false);
-        }
-        if(showStoreBalance){
-            setShowStoreBalance(false);
-        }
-        if(showStoreProfit){
-            setShowStoreProfit(false);
-        }
-        else{
-            setShowStoreProfit(true);
-            await displayStoreProfit();
         }
     }
 
@@ -197,60 +96,9 @@ function SiteManager(){
         }
     };
 
-    async function displayTotalInventory(){
+    async function displayStoreInventory(){
         const requestBody = { body : JSON.stringify({
-            action: "totalInventory"
-            })
-        };
-        
-        const responseData = await fetchData(requestBody);
-        if (responseData.statusCode === 200) {
-            const bodyObject = JSON.parse(responseData.body);
-            console.log('Parsed Body:', bodyObject);
-            const totalSum2 = bodyObject.totalInventory.reduce((acc, item) => acc + (Number(item['Inventory']) || 0), 0);
-            setTotalSum(totalSum2);
-        
-    }
-}
-
-async function displayStoreInventory(){
-    const requestBody = { body : JSON.stringify({
-        action: "totalInventoryStores"
-        })
-    };
-    
-    const responseData = await fetchData(requestBody);
-
-    if (responseData.statusCode === 200) {
-        const bodyObject = JSON.parse(responseData.body);
-        console.log('Parsed Body:', bodyObject);
-        setTotalInventory(bodyObject.totalInventoryResult);
-    } else {
-        console.log('Failed to load the inventory');
-    }
-}
-
-async function displayStoreProfit(){
-    const requestBody = { body : JSON.stringify({
-        action: "storesProfit"
-        })
-    };
-    
-    const responseData = await fetchData(requestBody);
-
-    if (responseData.statusCode === 200) {
-        const bodyObject = JSON.parse(responseData.body);
-        console.log('Parsed Body:', bodyObject);
-        setStoreProfit(bodyObject.totalProfitResult);
-    } else {
-        console.log('Failed to load the inventory');
-    }
-}
-
-/*
-    async function displayTotalBalance(){
-        const requestBody = { body : JSON.stringify({
-            action: "totalBalance"
+            action: "totalInventoryStores"
             })
         };
         
@@ -259,14 +107,11 @@ async function displayStoreProfit(){
         if (responseData.statusCode === 200) {
             const bodyObject = JSON.parse(responseData.body);
             console.log('Parsed Body:', bodyObject);
-            const totalSum3 = bodyObject.totalBalance.reduce((acc, item) => acc + (Number(item['Inventory']) || 0), 0);
-            setTotalBalance(totalSum3);
+            setTotalInventory(bodyObject.totalInventoryResult);
         } else {
             console.log('Failed to load the inventory');
         }
     }
-
-*/
 
     async function displayStoreBalance(){
         const requestBody = { body : JSON.stringify({
@@ -285,8 +130,6 @@ async function displayStoreProfit(){
         }
     }
 
-
-
     const fetchTotalProfit = async () => {
         const requestBody = { body: JSON.stringify({ action: "totalProfit" }) };
         const responseData = await fetchData(requestBody);
@@ -295,17 +138,6 @@ async function displayStoreProfit(){
             setTotalProfit(bodyObject.totalProfit);
         } else {
             console.log('Failed to load total profit');
-        }
-    };
-
-    const fetchTotalBalance = async () => {
-        const requestBody = { body: JSON.stringify({ action: "totalBalance" }) };
-        const responseData = await fetchData(requestBody);
-        if (responseData.statusCode === 200) {
-            const bodyObject = JSON.parse(responseData.body);
-            setTotalBalance(bodyObject.totalBalance);
-        } else {
-            console.log('Failed to load total balance');
         }
     };
 
@@ -326,25 +158,13 @@ async function displayStoreProfit(){
         }
     }
 
-
-
     async function displayStoresToDelete(){
         if(showInventory)
         {
             setShowInventory(false);
         }
-        if(showTotalInventory)
-        {
-            setShowTotalInventory(false);
-        }
-        if(showTotalBalance){
-            setShowTotalBalance(false);
-        }
         if(showStoreBalance){
             setShowStoreBalance(false);
-        }
-        if(showStoreProfit){
-            setShowStoreProfit(false);
         }
         const requestBody = { body : JSON.stringify({
             action: 'displayStoresToDelete'
@@ -389,11 +209,13 @@ async function displayStoreProfit(){
             }
         }
     }
+
     async function logout() {
         localStorage.removeItem('username');
         localStorage.removeItem('password');
         navigate('/login');
     }
+
     return (
     <Container maxWidth="md">
 
@@ -401,11 +223,10 @@ async function displayStoreProfit(){
             Site Manager
         </Typography>
         <div>
+            {/* Balance = Total profit for site manager (5% of sold computers)
+            Inventory = Total of available goods */}
             <div className="infoBox">
-                <Typography variant="h6">Total Profit: {totalProfit}</Typography>
-            </div>
-            <div className="infoBox">
-                <Typography variant="h6">Total Balance: {TotalBalance}</Typography>
+                <Typography variant="h6">Balance: {totalProfit}</Typography>
             </div>
             <div className="infoBox">
                 <Typography variant="h6">Total Inventory: {totalSum}</Typography>
@@ -414,15 +235,11 @@ async function displayStoreProfit(){
 
 
 
-        <Button variant="contained" onClick={() => {setShowDeleteComp(false);toggleDisplayStoreInventory();}} sx={{ margin: 1 }}>
+        <Button variant="contained" color="primary" onClick={() => {setShowDeleteComp(false);toggleDisplayStoreInventory();}} sx={{ margin: 1 }}>
             Store Inventory
         </Button>
 
-        <Button variant="contained" onClick={() => {setShowDeleteComp(false);toggleDisplayStoreProfit();}} sx={{ margin: 1 }}>
-            Store Profit
-        </Button>
-
-        <Button variant="contained" onClick={() => {setShowDeleteComp(false);toggleDisplayStoreBalance();}} sx={{ margin: 1 }}>
+        <Button variant="contained" color="primary" onClick={() => {setShowDeleteComp(false);toggleDisplayStoreBalance();}} sx={{ margin: 1 }}>
             Store Balance
         </Button>
 
@@ -448,70 +265,10 @@ async function displayStoreProfit(){
                                 <TableCell>{store['Inventory']}</TableCell>
                             </TableRow>
                         ))}
-
-                        {/*
-
-                        <TableRow>
-                            <TableCell><b>Total</b></TableCell>
-                            <TableCell></TableCell>
-                            <TableCell><b>{totalSum}</b></TableCell>
-                        </TableRow>
-
-                        */}
                     </TableBody>
                 </Table>
             </TableContainer>
         )}
-
-{showStoreProfit && (
-            <TableContainer component={Paper} sx={{ marginTop: 2 }}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Store ID</TableCell>
-                            <TableCell>Store Name</TableCell>
-                            <TableCell>Profit</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {StoreProfit.map((store) => (
-                            <TableRow key={store.store_id}>
-                                <TableCell>{store.store_id}</TableCell>
-                                <TableCell>{store.store_name}</TableCell>
-                                <TableCell>{store.store_profit}</TableCell>
-                            </TableRow>
-                        ))}
-
-                        {/*
-
-                        <TableRow>
-                            <TableCell><b>Total</b></TableCell>
-                            <TableCell></TableCell>
-                            <TableCell><b>{totalSum}</b></TableCell>
-                        </TableRow>
-
-                        */}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-        )}
-
-        {showTotalInventory && (
-            <div>
-                <Typography variant="h6" gutterBottom>
-                    The Total Inventory is {totalSum}
-                </Typography>
-            </div>
-)}
-
-        {showTotalBalance && (
-            <div>
-                <Typography variant="h6" gutterBottom>
-                    The Total Balance is {TotalBalance}
-                </Typography>
-            </div>
-        )}  
-
 
         {showStoreBalance && (
             <TableContainer component={Paper} sx={{ marginTop: 2 }}>
@@ -528,19 +285,9 @@ async function displayStoreProfit(){
                             <TableRow key={store.store_id}>
                                 <TableCell>{store.store_id}</TableCell>
                                 <TableCell>{store.store_name}</TableCell>
-                                <TableCell>{store['Inventory']}</TableCell>
+                                <TableCell>{store.sm_profit}</TableCell>
                             </TableRow>
                         ))}
-
-                        {/*
-
-                        <TableRow>
-                            <TableCell><b>Total</b></TableCell>
-                            <TableCell></TableCell>
-                            <TableCell><b>{totalSum}</b></TableCell>
-                        </TableRow>
-
-                        */}
                     </TableBody>
                 </Table>
             </TableContainer>
