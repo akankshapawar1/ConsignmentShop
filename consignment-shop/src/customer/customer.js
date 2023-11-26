@@ -1,20 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { AppBar, Toolbar, makeStyles } from '@material-ui/core';
+import { AppBar, Toolbar, makeStyles, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Checkbox, Card, CardContent, CardActions, Typography } from '@material-ui/core';
+
 import Button from '@mui/material/Button';
 import './customer.css';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import Checkbox from '@mui/material/Checkbox';
 import { useNavigate } from 'react-router-dom';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CardActions from '@mui/material/CardActions';
-import Typography from '@mui/material/Typography';
 import laptopImage from './laptop.png';
 
 const useStyles = makeStyles((theme) => ({
@@ -461,6 +450,7 @@ function Customer(){
             </AppBar>
         <div className="flex-container">
         <div className="flex-filter">
+
                     <>
                     <table>
                         <thead>
