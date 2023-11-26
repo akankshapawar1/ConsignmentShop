@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { AppBar, Toolbar, makeStyles } from '@material-ui/core';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { LoadScript, Autocomplete } from '@react-google-maps/api';
+import { AppBar, Toolbar, makeStyles, TextField } from '@material-ui/core';
 import Button from '@mui/material/Button';
 import './customer.css';
 import Table from '@mui/material/Table';
@@ -15,7 +16,9 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
 import Typography from '@mui/material/Typography';
-import laptopImage from './laptop.png';
+import laptopImage from './laptop.png'; 
+
+const libraries = ["places"];
 
 const useStyles = makeStyles((theme) => ({
     appBar: {
@@ -28,6 +31,8 @@ const useStyles = makeStyles((theme) => ({
       marginLeft: theme.spacing(2),
     },
   }));
+
+const API_KEY = 'AIzaSyD6BrH9vtqJr84LBDRpy1f-_0g0sGAl0Eo';
 
 function Customer(){
     const navigate = useNavigate();
@@ -50,8 +55,8 @@ function Customer(){
     const [memorySelected, setMemorySelected] = useState([]);
     const [brandSelected, setBrandSelected] = useState([]);
     const [priceSelected, setPriceSelected] = useState([]);
-     const [filteredComputers, setFilteredComputers] = useState([]);
-     const [showAlert, setShowAlert] = useState(false);
+    const [filteredComputers, setFilteredComputers] = useState([]);
+    const [showAlert, setShowAlert] = useState(false);
 
     // display all stores
     const [storeId, setStoreId] = useState([]);
@@ -64,28 +69,17 @@ function Customer(){
     const [successMessage, setSuccessMessage] = useState('');
     const [showStores, setShowStores] = useState(false);
     const [showCompare, setShowCompare] = useState(false);
+    const [address, setAddress] = useState("");
+    const [customerLocation, setCustomerLocation] = useState(null);
+    const autocompleteRef = useRef(null);
 
     const navigateToLogin = () => {
         navigate('/login');
     };
 
-    const [customerLocation, setCustomerLocation] = useState(null);
-
     useEffect(() => {
         displayAllComputers();
-
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    setCustomerLocation({
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude
-                    });
-                },
-                (error) => console.error("Error getting location", error)
-            );
-        }
-    }, []);
+    }, [customerLocation]);
 
     useEffect(() => {
         if (showAlert) {
@@ -106,14 +100,55 @@ function Customer(){
 
     useEffect(() => {
         setFilteredComputers(updatedListWithShipping);
-    }, [updatedListWithShipping]);
+    }, [updatedListWithShipping]); 
+    
+    const handleLoad = (autoC) => {
+        autocompleteRef.current = autoC;
+    };
+    
+    const handlePlaceChanged = () => {
+        if (autocompleteRef.current) {
+            const place = autocompleteRef.current.getPlace();
+            setAddress(place.formatted_address);
+            const latitude = place.geometry.location.lat();
+            const longitude = place.geometry.location.lng();
+            setCustomerLocation({
+                latitude: latitude,
+                longitude: longitude
+            });
+        }
+    };
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Radius of the Earth in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c; // Distance in km
+    }
+
+    function computeUpdatedListWithShipping(computers, customerLocation) {
+        return computers.map(computer => {
+            const distance = calculateDistance(
+                customerLocation.latitude,
+                customerLocation.longitude,
+                computer.latitude,
+                computer.longitude
+            );
+            const shippingCost = distance * 0.03;
+            const shippingCost2 = shippingCost.toFixed(2)
+            return { ...computer, distance, shippingCost2 };
+        });
+    }
 
     const handleCheckboxChange = (event, computerId) =>{
         const isChecked = event.target.checked;
         if (isChecked) {
             setCompareList((prevList) => [...prevList, computerId]);
         } else {
-            // Checkbox is unchecked, remove computer ID from the compareList
             setCompareList((prevList) => prevList.filter((id) => id !== computerId));
         }
     }
@@ -141,17 +176,6 @@ function Customer(){
             setCompVisible(true);
         }
     };
-      
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Radius of the Earth in km
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-                  Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c; // Distance in km
-    }
 
     const graphicsCheckboxChange = (event, graphics) => {
         const isChecked = event.target.checked;
@@ -415,20 +439,6 @@ function Customer(){
         }
     }
 
-    function computeUpdatedListWithShipping(computers, customerLocation) {
-        return computers.map(computer => {
-            const distance = calculateDistance(
-                customerLocation.latitude,
-                customerLocation.longitude,
-                computer.latitude,
-                computer.longitude
-            );
-            const shippingCost = distance * 0.03;
-            const shippingCost2 = shippingCost.toFixed(2)
-            return { ...computer, distance, shippingCost2 };
-        });
-    }
-
     async function buyComputerAction(computerId) {
         if(computerId) {
             const requestBody = {
@@ -638,6 +648,16 @@ function Customer(){
 
             <div className="flex-list">
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+                <LoadScript
+                    googleMapsApiKey={API_KEY}
+                    libraries={libraries}>
+                <Autocomplete
+                    onLoad={handleLoad}
+                    onPlaceChanged={handlePlaceChanged}>
+                <TextField id="outlined-basic" label="Enter address" variant="outlined" fullWidth style={{ width: '600px' }} 
+                    value={address} 
+                    onChange={(e) => setAddress(e.target.value)}/>
+                </Autocomplete></LoadScript>
                 {/* {successMessage && <div style={{ color: 'red', fontWeight: 'bold' }}>{successMessage}</div>} */}
                 {filteredComputers && filteredComputers.length > 0 ? (
                     sortedComputerList.map((computer, index) => (
