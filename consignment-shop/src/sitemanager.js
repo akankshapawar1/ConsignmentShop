@@ -19,6 +19,8 @@ function SiteManager(){
     const [storeToBeDeleted, setStoreToBeDeleted] = useState(null);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [sortOrder, setSortOrder] = useState('ASC');
+
 
     let deleteSuccessTimeout = null;
     const navigate = useNavigate();
@@ -51,7 +53,10 @@ function SiteManager(){
     const handleRadioChange = (event) =>{
         setStoreToBeDeleted(event.target.value);
     }
-
+    useEffect(() => {
+        displayStoreInventory();
+    }, [sortOrder]);
+    
     async function toggleDisplayStoreInventory() {
         if(showInventory)
         {
@@ -98,7 +103,8 @@ function SiteManager(){
 
     async function displayStoreInventory(){
         const requestBody = { body : JSON.stringify({
-            action: "totalInventoryStores"
+            action: "totalInventoryStores",
+            sortOrder: sortOrder
             })
         };
         
@@ -248,26 +254,35 @@ function SiteManager(){
         </Button>
 
         {showInventory && (
-            <TableContainer component={Paper} sx={{ marginTop: 2 }}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Store ID</TableCell>
-                            <TableCell>Store Name</TableCell>
-                            <TableCell>Total Inventory</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {totalInventory.map((store) => (
-                            <TableRow key={store.store_id}>
-                                <TableCell>{store.store_id}</TableCell>
-                                <TableCell>{store.store_name}</TableCell>
-                                <TableCell>{store['Inventory']}</TableCell>
+            <React.Fragment>
+                <Button 
+                    variant="contained" 
+                    onClick={() => setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC')}
+                    sx={{ margin: 1 }}
+                >
+                    Sort Inventory {sortOrder === 'ASC' ? 'Descending' : 'Ascending'}
+                </Button>
+                <TableContainer component={Paper} sx={{ marginTop: 2 }}>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Store ID</TableCell>
+                                <TableCell>Store Name</TableCell>
+                                <TableCell>Total Inventory</TableCell>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+                        </TableHead>
+                        <TableBody>
+                            {totalInventory.map((store) => (
+                                <TableRow key={store.store_id}>
+                                    <TableCell>{store.store_id}</TableCell>
+                                    <TableCell>{store.store_name}</TableCell>
+                                    <TableCell>{store['Inventory']}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </React.Fragment>
         )}
 
         {showStoreBalance && (

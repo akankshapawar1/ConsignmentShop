@@ -703,7 +703,8 @@ function Customer(){
                                     <Button size="small" variant='contained' onClick={() => buyComputerAction(computer.computer_id)}>Buy</Button>
                                     </div>
                                     <Typography variant="h6" color="primary" sx={{ marginLeft: '0', textAlign: 'left' }} className="product-price">
-                                        ${parseFloat(computer.price) + (parseFloat(computer.shippingCost2) || 0)}
+                                        ${parseFloat((parseFloat(computer.price) + (parseFloat(computer.shippingCost2) || 0)).toFixed(2))}
+
                                     </Typography>
                                 </CardActions>
                             </div>
@@ -715,7 +716,7 @@ function Customer(){
                 </div>
         </div>
         </div>
-        <Button variant='contained' onClick={handleCompareButtonClick} sx={{ position: "fixed", top: 100, right: 50, zIndex: 2000 }}>Compare Selected Computers</Button>
+        <Button variant='contained' onClick={handleCompareButtonClick} sx={{ position: "fixed", top: 100, right: 400, zIndex: 2000 }}>Compare Selected Computers</Button>
 
         <div className="store-display">
             <div style={{ width: '100%' }}>

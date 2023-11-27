@@ -1,70 +1,20 @@
-# Getting Started with Create React App
+Group Members:
+Vignesh Sundaram
+Amey More
+Akanksha Pawar
+Padmesh Naik
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Go to the URL:
+http://lhotse-consignment-shop.s3-website-us-east-1.amazonaws.com/
 
-## Available Scripts
-
-In the project directory, you can run:
-
-### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+1) You will be redirected to the customer page where you will see list of computers that are available. Initially you would be provided with the unsorted list of computers, once location is provided by the customer, the computers nearest to them will be shown in the ascending order of distance. The user can either choose to buy the computer by clicking on it or select the checkbox for comparing different compters. For comparison, the customer needs to select two or more computers together. A table of comparison will be shown if user selects multiple computer and clicks on "Compare Selected Computers"
+2) Customers can filter the computers based on various parameters like Price, Brand, Memory, Storage, Processor, Process Generation, Graphics. Simply select the checkboxes as per your preferences and the computers will be filtered automatically.
+3) Customers can also generate inventory report for specific store. Click on "Show All Stores". List of all the stores will be displayed. Click on any one store, you will see all the computers in that store. The user can choose to compare computers or buy computers from specific store.
+4) Now from customer page click on Login button. Login page will be loaded.
+5) For sitemanager: Use username : sm123 and password: sitemanager.
+6) You will view the initial dashboard which has total balance for site manager, total balance of each store and total site inventory. (all sites)
+7) If you click on Store inventory, you will see report of total site inventory aggregated by virtual store. If you click on Store balance, you will see balance of each store. If you click on Remove store, the stores will be displayed. You could check any of them and click on Delete Selected Store.
+8) Now logout of the sitemanager and login to storeowner page.
+9) Use the credentials of the store you might have created or use the following credential for already existing store. Username : Amey Password: Amey
+10) You will see the inventory of computers of that store with the option to modify price and delete computer. The computers that are sold are also present in the inventory with indication of whether sold or not in the sold column. For those computers, modify price and delete function is disabled.
+11) You can also see total inventory value of that store and store profit of that store. 
