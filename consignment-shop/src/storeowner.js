@@ -109,7 +109,14 @@ function StoreOwner() {
           console.log('Computer fetched:', responseData);
           const responseBody = JSON.parse(responseData.body);
           const computerList = responseBody.computerList;
-          const total = computerList.reduce((acc, computer) => acc + parseFloat(computer.price || 0), 0);
+          // console.log("computer.isavailable", computer.is_available);
+          const total = computerList.reduce((acc, computer) => {
+            if (computer.is_available === 1) {
+                return acc + parseFloat(computer.price || 0);
+            }
+            return acc;
+        }, 0);
+        
           console.log('Total inventory: ',total);
           console.log('Computer List: ', computerList)
 
@@ -391,7 +398,7 @@ function StoreOwner() {
           
         </Typography>
       )}
-
+          <form onSubmit={addComputer}>
           <div
             id="addComputerForm"
             className="form"
@@ -401,7 +408,7 @@ function StoreOwner() {
               Add Computer
             </Typography>
 
-            <FormControl fullWidth variant="outlined" margin="normal">
+            <FormControl fullWidth variant="outlined" margin="normal" required>
               <InputLabel htmlFor="brand" required>Brand</InputLabel>
               <Select
                 label="Brand"
@@ -518,16 +525,19 @@ function StoreOwner() {
             </FormControl>
 
             <Button
+              type="submit"
               variant="contained"
               color="primary"
               fullWidth
-              onClick={addComputer}>
+              >
               Add Computer
             </Button>
             <Typography variant="body1" color="error" gutterBottom id="addComputerMessage"></Typography>
           </div>
+          </form>
     </Container>
     </div>
+    
 ); 
 }
 

@@ -98,29 +98,83 @@ function Customer(){
         autocompleteRef.current = autoC;
     };
     
+    // const handlePlaceChanged = () => {
+    //     if (autocompleteRef.current) {
+    //         const place = autocompleteRef.current.getPlace();
+    //         setAddress(place.formatted_address);
+    //         const latitude = place.geometry.location.lat();
+    //         const longitude = place.geometry.location.lng();
+    //         setCustomerLocation({
+    //             latitude: latitude,
+    //             longitude: longitude
+    //         });
+    //     }
+    // };
     const handlePlaceChanged = () => {
         if (autocompleteRef.current) {
             const place = autocompleteRef.current.getPlace();
-            setAddress(place.formatted_address);
-            const latitude = place.geometry.location.lat();
-            const longitude = place.geometry.location.lng();
-            setCustomerLocation({
-                latitude: latitude,
-                longitude: longitude
-            });
+            
+            // Check if the place has geometry property
+            if (place && place.geometry) {
+                setAddress(place.formatted_address);
+                const latitude = place.geometry.location.lat();
+                const longitude = place.geometry.location.lng();
+                setCustomerLocation({
+                    latitude: latitude,
+                    longitude: longitude
+                });
+            } else {
+                // Handle case where place is not defined or doesn't have geometry
+                const latLngPattern = /^(\-?\d+(\.\d+)?),\s*(\-?\d+(\.\d+)?)$/;
+                const match = address.match(latLngPattern);
+                if (match) {
+                    setCustomerLocation({
+                        latitude: parseFloat(match[1]),
+                        longitude: parseFloat(match[3])
+                    });
+                } else {
+                    console.error("Invalid address or coordinates");
+                    // You may want to handle this case appropriately in your UI
+                }
+            }
         }
     };
+    
+
+//     function calculateDistance(lat1, lon1, lat2, lon2) {
+//     const R = 3958.8; // Radius of the Earth in miles
+//     const dLat = (lat2 - lat1) * Math.PI / 180; // Convert degrees to radians
+//     const dLon = (lon2 - lon1) * Math.PI / 180; // Convert degrees to radians
+//     const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+//               Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+//               Math.sin(dLon/2) * Math.sin(dLon/2);
+//     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+//     return R * c; // Distance in miles
+// }
+
+// function calculateDistance(lat1, lon1, lat2, lon2) {
+//     const R = 6373; // Radius of the Earth in km
+//     const dLat = (lat2 - lat1) * Math.PI / 180;
+//     const dLon = (lon2 - lon1) * Math.PI / 180;
+//     const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+//               Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+//               Math.sin(dLon/2) * Math.sin(dLon/2);
+//     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+//     return R * c; // Distance in km
+// }
 
     function calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Radius of the Earth in km
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-                  Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c; // Distance in km
-    }
+    const R = 3958.8; // Radius of the Earth in miles
+    const dLat = (lat2 - lat1) * Math.PI / 180; // Convert degrees to radians
+    const dLon = (lon2 - lon1) * Math.PI / 180; // Convert degrees to radians
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // Distance in miles
+}
+
+
 
     function computeUpdatedListWithShipping(computers, customerLocation) {
         return computers.map(computer => {
@@ -450,6 +504,12 @@ function Customer(){
             console.log('Computer to be sold: ', computerId); 
     
             const responseData = await fetchData(requestBody);
+            if(responseData.statusCode === 400){
+                console.log('Computer not available', responseData);
+                setSuccessMessage('Computer not available');
+                setShowAlert(true);
+                await displayAllComputers();
+            }
             if(responseData.statusCode === 200){
                 console.log('Sold the computer', responseData);
                 setSuccessMessage('Computer has been shipped!');
