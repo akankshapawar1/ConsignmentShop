@@ -159,9 +159,6 @@ function Login() {
           <Typography variant="h4" align="center" gutterBottom style={{ color: 'black' }}>
             Computer Consignment Shop
           </Typography>
-          {/* <Typography variant="h5" align="center" gutterBottom style={{ color: 'black' }}>
-            Login
-          </Typography> */}
           <form onSubmit={handleSubmit}>
             <TextField
               fullWidth
@@ -187,6 +184,8 @@ function Login() {
             <Button type="submit" variant="contained" color="primary" fullWidth>
               Login
             </Button>
+            <br />
+            <Button type="submit" variant="contained" color="primary" fullWidth onClick={() => navigate('/customer')} >Back to customer page</Button>
           </form>
           <Typography variant="body1" color="error" gutterBottom>
             {message}
