@@ -127,7 +127,8 @@ function StoreOwner() {
       }
     }
 
-    async function addComputer() {
+    async function addComputer(event) {
+        event.preventDefault();
         setShowAllComputers(false)
         const brand = selectedBrand
         const computer_name = document.getElementById('name').value;
@@ -163,6 +164,7 @@ function StoreOwner() {
 
         if (responseData.statusCode === 200) {
             document.getElementById('addComputerMessage').innerText = 'Computer added successfully!';
+            console.log("Added Computer")
             document.getElementById('name').value = '';
             document.getElementById('price').value = ''; 
             setSelectedBrand('');
@@ -174,6 +176,7 @@ function StoreOwner() {
             setShowAddComputerForm(false)
             await getAllComputers(username)
         } else {
+            console.log("Could not add computer due to status code ",responseData.statusCode);
             document.getElementById('addComputerMessage').innerText = responseData.message || 'Failed to add computer. Please try again. Try different username';
         }
     }

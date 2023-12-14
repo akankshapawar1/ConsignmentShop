@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Button, Container, Radio, RadioGroup, FormControlLabel, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@material-ui/core';
+import { Typography, Button, Container, Radio, RadioButton, RadioGroup, FormControlLabel, Table, TableBody, TableCell, TableContainer, Checkbox, TableHead, TableRow, Paper } from '@material-ui/core';
 import './style.css'; 
 import { useNavigate } from 'react-router-dom';
+import { RadioButtonUncheckedRounded, RadioRounded } from '@mui/icons-material';
 
 function SiteManager(){
 
@@ -17,9 +18,12 @@ function SiteManager(){
     const [deletedStoreId, setDeletedStoreId] = useState(null);
     const [activeView, setActiveView] = useState(null);
     const [storeToBeDeleted, setStoreToBeDeleted] = useState(null);
+    // const [selectedStore, setSelectedStore] = useState(''); 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [sortOrder, setSortOrder] = useState('ASC');
+    const [selectedRadio, setSelectedRadio] = useState(null);
+
 
 
     let deleteSuccessTimeout = null;
@@ -48,10 +52,14 @@ function SiteManager(){
     deleteSuccessTimeout = setTimeout(() => {
         setDeleteSuccess(true);
         setDeletedStoreId(null); 
-    }, 5000);
+    }, 10000);
 
     const handleRadioChange = (event) =>{
+        
         setStoreToBeDeleted(event.target.value);
+        setSelectedRadio(event.target.value);
+        console.log("New storeToBeDeleted:", event.target.value);
+        // setSelectedStore(event.target.value);
     }
     useEffect(() => {
         displayStoreInventory();
@@ -310,28 +318,26 @@ function SiteManager(){
 
 
         {showDeleteComp && (
-            <div>
-                <Typography variant="h6" gutterBottom>
-                    Select a Store to Delete
-                </Typography>
-                <RadioGroup>
+                    <>
+                    <RadioGroup
+                        defaultValue = "30"
+                        name = "radio-buttons-group"
+                        onChange = {handleRadioChange}
+                        value={storeToBeDeleted}
+                    >
+                    
                     {storeList.map((store) => (
-                        <FormControlLabel
-                            key={store.store_id}
-                            value={store.store_id}
-                            control={<Radio />}
-                            label={`${store.store_name} (ID: ${store.store_id})`}
-                            onChange={handleRadioChange}
-                        />
+                        <FormControlLabel value = {store.store_id.toString()} control = {<Radio />}  label={`${store.store_name} (ID: ${store.store_id})`} />
                     ))}
-                </RadioGroup>
-                <Button variant="contained" color="error" onClick={deleteStore} sx={{ margin: 1 }}>
-                    Delete Selected Store
-                </Button>
-            </div>
-        )}
+                    </RadioGroup>
+                    <Button variant="contained" color="error" onClick={deleteStore} sx={{ margin: 1 }}>
+                        Delete Selected Store
+                    </Button>
+                </>
+                )}
 
         <div>
+       
         {deleteSuccess === true && activeView === 'deleteStore' && deletedStoreId ? (
             <p><b>Store {deletedStoreId} has been deleted successfully!</b></p>
         ):(
