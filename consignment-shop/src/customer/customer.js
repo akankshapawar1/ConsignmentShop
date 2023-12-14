@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { AppBar, Toolbar, makeStyles, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Checkbox, Card, CardContent, CardActions, Typography, Input, } from '@material-ui/core';
 
+//Pagination icons
+import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
+import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
+import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+
 import { LoadScript, Autocomplete } from '@react-google-maps/api';
 import { TextField } from '@material-ui/core';
 import Button from '@mui/material/Button';
@@ -45,10 +51,10 @@ function Customer(){
     const [memorySelected, setMemorySelected] = useState([]);
     const [brandSelected, setBrandSelected] = useState([]);
     const [priceSelected, setPriceSelected] = useState([]);
-     const [filteredComputers, setFilteredComputers] = useState([]);
-     const [showAlert, setShowAlert] = useState(false);
-     const [latitude, setLatitude] = useState(null)
-     const [longitude, setLongitude] = useState(null)
+    const [filteredComputers, setFilteredComputers] = useState([]);
+    const [showAlert, setShowAlert] = useState(false);
+    const [latitude, setLatitude] = useState(null)
+    const [longitude, setLongitude] = useState(null)
 
     // display all stores
     const [storeId, setStoreId] = useState([]);
@@ -64,6 +70,10 @@ function Customer(){
     const [address, setAddress] = useState("");
     const [customerLocation, setCustomerLocation] = useState(null);
     const autocompleteRef = useRef(null);
+
+    //Pagination
+    let [currentPage, setCurrentPage] = useState(1);
+    const computersPerPage = 5;
 
     const navigateToLogin = () => {
         navigate('/login');
@@ -97,19 +107,6 @@ function Customer(){
     const handleLoad = (autoC) => {
         autocompleteRef.current = autoC;
     };
-    
-    // const handlePlaceChanged = () => {
-    //     if (autocompleteRef.current) {
-    //         const place = autocompleteRef.current.getPlace();
-    //         setAddress(place.formatted_address);
-    //         const latitude = place.geometry.location.lat();
-    //         const longitude = place.geometry.location.lng();
-    //         setCustomerLocation({
-    //             latitude: latitude,
-    //             longitude: longitude
-    //         });
-    //     }
-    // };
     const handlePlaceChanged = () => {
         if (autocompleteRef.current) {
             const place = autocompleteRef.current.getPlace();
@@ -139,29 +136,6 @@ function Customer(){
             }
         }
     };
-    
-
-//     function calculateDistance(lat1, lon1, lat2, lon2) {
-//     const R = 3958.8; // Radius of the Earth in miles
-//     const dLat = (lat2 - lat1) * Math.PI / 180; // Convert degrees to radians
-//     const dLon = (lon2 - lon1) * Math.PI / 180; // Convert degrees to radians
-//     const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-//               Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-//               Math.sin(dLon/2) * Math.sin(dLon/2);
-//     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-//     return R * c; // Distance in miles
-// }
-
-// function calculateDistance(lat1, lon1, lat2, lon2) {
-//     const R = 6373; // Radius of the Earth in km
-//     const dLat = (lat2 - lat1) * Math.PI / 180;
-//     const dLon = (lon2 - lon1) * Math.PI / 180;
-//     const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-//               Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-//               Math.sin(dLon/2) * Math.sin(dLon/2);
-//     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-//     return R * c; // Distance in km
-// }
 
     function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 3958.8; // Radius of the Earth in miles
@@ -522,6 +496,27 @@ function Customer(){
         }
     }
 
+    const indexOfLastComputer = currentPage * computersPerPage;
+    const indexOfFirstComputer = indexOfLastComputer - computersPerPage;
+    const currentComputers = sortedComputerList.slice(indexOfFirstComputer, indexOfLastComputer);
+
+    async function firstPage() {
+        setCurrentPage(1)
+    }
+
+    async function previousPage() {
+        setCurrentPage(currentPage-1)
+    }
+
+    async function nextPage() {
+        setCurrentPage(currentPage+1)
+    }
+
+    async function lastPage() {
+        const totalPages = Math.ceil(filteredComputers.length / computersPerPage);
+        setCurrentPage(totalPages);
+    }
+
     // computer_id, store_id, brand, price, memory, storage, processor, process_generation, graphics
     return (
         <>
@@ -721,7 +716,7 @@ function Customer(){
                 </Autocomplete></LoadScript>
                 {/* {successMessage && <div style={{ color: 'red', fontWeight: 'bold' }}>{successMessage}</div>} */}
                 {filteredComputers && filteredComputers.length > 0 ? (
-                    sortedComputerList.map((computer, index) => (
+                    currentComputers.map((computer, index) => (
                         <Card className="product-card" key={index} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', maxWidth: '1200px', overflow: 'hidden' }}>
                             <img src={laptopImage} alt="Computer" style={{ width: '50%', objectFit: 'cover' }} />
                             <div style={{ display: 'flex', flexDirection: 'column', width: '50%', padding: '20px' }}>
@@ -773,6 +768,13 @@ function Customer(){
                 ) : (
                     <p>No computers to display</p>
                 )}
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Button onClick={() => firstPage()}><KeyboardDoubleArrowLeftIcon /></Button>
+                    <Button onClick={() => previousPage()} disabled={currentPage === 1}><KeyboardArrowLeftIcon /></Button>
+                    <p>{currentPage}</p>
+                    <Button onClick={() => nextPage()} disabled={indexOfLastComputer >= filteredComputers.length}><KeyboardArrowRightIcon /></Button>
+                    <Button onClick={() => lastPage()} disabled={indexOfLastComputer >= filteredComputers.length}><KeyboardDoubleArrowRightIcon /></Button>
+                </div>
                 </div>
         </div>
         </div>
