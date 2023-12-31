@@ -61,7 +61,7 @@ function StoreOwner() {
 
     const fetchData = async (action) => {
       try {
-          const response = await fetch('https://q15htzftq3.execute-api.us-east-1.amazonaws.com/beta/login', {
+          const response = await fetch('/login', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(action)
