@@ -28,7 +28,7 @@ const useStyles = makeStyles((theme) => ({
     },
   }));
 
-const API_KEY = 'AIzaSyD6BrH9vtqJr84LBDRpy1f-_0g0sGAl0Eo';
+const API_KEY = '';
 
 function Customer(){
     const navigate = useNavigate();
@@ -376,7 +376,7 @@ function Customer(){
 
     const fetchData = async (action) => {
         try {
-            const response = await fetch('https://q15htzftq3.execute-api.us-east-1.amazonaws.com/beta/login', {
+            const response = await fetch('/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(action)
